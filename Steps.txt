@@ -1,0 +1,155 @@
+BICOL EXPRESS ONLINE TICKETING SYSTEM
+Cancellation Request Implementation Steps
+
+A. USER SIDE (booking-history.html) Implementation:
+
+1. Frontend Modal Development:
+   - Create HTML structure for cancellation modal
+   - Include:
+     * Warning message about cancellation
+     * Text area for reason (required)
+     * Character counter for reason text
+     * Submit and Cancel buttons
+     * Loading spinner
+   - Style the modal with CSS
+   - Add responsive design for mobile views
+
+2. JavaScript Functions:
+   - Create modal show/hide functions
+   - Implement form validation:
+     * Check if reason is provided
+     * Minimum character requirement
+     * Maximum character limit
+   - Add loading state handlers
+   - Create AJAX submission function
+   - Update booking card status after submission
+
+3. Backend API Endpoints (PHP):
+   - Create cancel_request.php:
+     * Validate user session
+     * Receive POST data (ticket_id, reason)
+     * Insert into cancellation_requests table
+     * Update ticket status to 'Pending Cancellation'
+     * Return success/error response
+   - Update get_booking_details.php:
+     * Include cancellation request status
+     * Add cancellation reason if exists
+
+4. User Interface Updates:
+   - Update booking card to show 'Pending Cancellation' status
+   - Disable cancel button after submission
+   - Add info tooltip about admin approval requirement
+   - Show cancellation request status in booking details
+
+B. ADMIN SIDE (manage_bookings.php) Implementation:
+
+1. Frontend Updates:
+   - Add new filter option for 'Pending Cancellation' status
+   - Create cancellation request management modal:
+     * Booking details section
+     * User's cancellation reason display
+     * Admin response text area
+     * Approve/Reject buttons
+     * Loading states
+
+2. JavaScript Enhancements:
+   - Add functions to handle:
+     * Loading cancellation requests
+     * Displaying request details
+     * Approve/Reject actions
+     * Form validation
+     * Success/error messages
+   - Update booking list after action
+   - Implement sorting and filtering
+
+3. Backend API Endpoints:
+   - Create get_cancellation_requests.php:
+     * Fetch pending cancellation requests
+     * Include booking and user details
+   - Create process_cancellation.php:
+     * Handle approve/reject actions
+     * Update cancellation_requests table
+     * Update tickets table
+     * Log admin action
+     * Send user notification
+
+4. Database Interactions:
+   - Create functions to:
+     * Fetch cancellation requests
+     * Update request status
+     * Log admin actions
+     * Update ticket status
+
+5. Notification System:
+   - Implement email notifications for:
+     * User when admin approves/rejects
+     * Admin when new request is submitted
+   - Create notification templates
+   - Setup email sending system
+
+C. Testing Phase:
+
+1. User Side Testing:
+   - Test cancellation request submission
+   - Validate form requirements
+   - Check status updates
+   - Test error handling
+   - Verify mobile responsiveness
+
+2. Admin Side Testing:
+   - Test filtering and sorting
+   - Verify approval/rejection process
+   - Check notification system
+   - Test error scenarios
+   - Validate logging system
+
+3. Integration Testing:
+   - End-to-end workflow testing
+   - Database integrity checks
+   - Performance testing
+   - Security testing
+
+D. Documentation:
+
+1. User Documentation:
+   - Update user guide with cancellation process
+   - Add screenshots and instructions
+   - Include FAQ section
+
+2. Admin Documentation:
+   - Document new admin features
+   - Add workflow diagrams
+   - Include troubleshooting guide
+
+E. Deployment:
+
+1. Preparation:
+   - Backup existing database
+   - Prepare update scripts
+   - Test in staging environment
+
+2. Deployment Steps:
+   - Deploy database changes
+   - Upload new/modified files
+   - Update configuration
+   - Clear cache if necessary
+
+3. Post-Deployment:
+   - Monitor system
+   - Check error logs
+   - Verify all features
+   - Address any issues
+
+F. Maintenance:
+
+1. Regular Tasks:
+   - Monitor cancellation requests
+   - Check system logs
+   - Backup database
+   - Update documentation as needed
+
+2. Performance Optimization:
+   - Monitor database queries
+   - Optimize slow queries
+   - Cache frequently accessed data
+   - Clean up old records

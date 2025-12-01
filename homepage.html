@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PNR System Dashboard</title>
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <link rel="icon" type="image/x-icon" href="favicon/favicon.png">
+  <link rel="stylesheet" href="sidebar.css" />
+  <link rel="stylesheet" href="css/homepage.css" />
+  <script>
+    (function() {
+        const isSidebarCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+        if (isSidebarCollapsed) {
+            document.documentElement.style.setProperty('--sidebar-width', '70px');
+            document.documentElement.classList.add('sidebar-collapsed');
+        }
+
+        const isDarkMode = localStorage.getItem("darkMode") === "true";
+        if (isDarkMode) {
+            document.documentElement.setAttribute("data-theme", "dark");
+        }
+    })();
+  </script>
+  <style>
+    :root {
+      --sidebar-width: 250px;
+    }
+    .sidebar-collapsed .sidebar {
+      min-width: 70px;
+      width: 70px;
+    }
+    .sidebar-collapsed .logo h2,
+    .sidebar-collapsed .nav-links span {
+      display: none;
+    }
+    .sidebar-collapsed .nav-links a {
+      justify-content: center;
+    }
+    .sidebar-collapsed .nav-links i {
+      margin: 0;
+    }
+    .sidebar-collapsed .toggle-sidebar i {
+      transform: rotate(180deg);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      background: var(--bg-light);
+      min-height: 100vh;
+      color: var(--text-primary);
+    }
+
+    .dashboard {
+      display: flex;
+      min-height: 100vh;
+      padding: 24px;
+      gap: 32px;
+    }
+
+    .container {
+      flex: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .content {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      width: 100%;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .header-layout {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start; 
+      flex-wrap: wrap;    
+      
+    }
+
+    .welcome-panel {
+      flex: 1;
+      background: var(--white);
+      padding: 103px;
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+      min-width: 300px;
+    }
+    .welcome-panel::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--primary-color);
+    }
+    .welcome-panel h3 {
+      font-size: 38px;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .welcome-panel p {
+      margin-top: 16px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .book-ticket {
+      background: linear-gradient(to right, #00ADB5, #393E46);
+      color: var(--white);
+      border: none;
+      padding: 20px 40px;
+      cursor: pointer;
+      border-radius: var(--border-radius-sm);
+      font-size: 17px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 18px;
+    }
+    .book-ticket:hover {
+      background: linear-gradient(to right, #00ADB5, #393E46);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stats-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      min-width: 420px; 
+      
+    }
+
+    .stat-card {
+      background: var(--white);
+      padding: 34.5px;
+      border-radius: var(--border-radius-md);
+      box-shadow: var(--shadow-sm);
+      text-align: left;
+      transition: transform 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-md);
+    }
+    /*Ative Bookings and Total Trips*/
+    .stat-card .icon {
+      font-size: 24px;
+      color: #00ADB5;
+      margin-bottom: 8px;
+    }
+    .stat-card .label {
+      color: var(--text-secondary);
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .stat-card .value {
+      font-size: 36px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Recent Bookings Table */
+    .recent-bookings {
+      background: var(--white);
+      padding: 32px;
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .recent-bookings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .recent-bookings h3 {
+      color: var(--text-primary);
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    .view-all {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .view-all:hover {
+      text-decoration: underline;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    th {
+      background: #f8f9fa;
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 16px;
+      text-align: left;
+      border-bottom: 2px solid #eee;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 16px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    tr:hover {
+      background: #faf8f8;
+    }
+
+    .status {
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 500;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status i {
+      font-size: 12px;
+    }
+    .status.confirmed {
+      background: var(--success-bg);
+      color: var(--success-text);
+    }
+    .status.pending {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+    }
+    .status.reserved {
+      background: var(--warning-bg);
+      color: var(--warning-text);
+    }
+
+  
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal h2 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-primary);
+    }
+
+    .modal h2 i {
+      color: #e53e3e;
+    }
+
+    #logoutModal .modal-content {
+      max-width: 400px;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      visibility: hidden;
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+
+    .loading-overlay.visible {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .logout-btn {
+      padding: 10px 20px;
+      background: #e53e3e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logout-btn:hover {
+      background: #c53030;
+    }
+
+    .cancel-btn {
+      background: #e2e8f0;
+      color: #4a5568;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .cancel-btn:hover {
+      background: #cbd5e0;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      margin-top: 24px;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-right: 30px;
+    }
+
+    .theme-toggle {
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      font-size: 24px;
+      cursor: pointer;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .theme-toggle:hover {
+      background: var(--hover-bg);
+      transform: rotate(15deg) scale(1.1);
+    }
+
+    .theme-toggle i {
+      transition: all 0.3s ease;
+      position: relative;
+      z-index: 2;
+    }
+
+    /* Light mode styles */
+    [data-theme="light"] .theme-toggle {
+      color: #00ADB5;
+      box-shadow: 0 2px 8px rgba(0, 173, 181, 0.2);
+    }
+
+    [data-theme="light"] .theme-toggle:hover {
+      background: rgba(0, 173, 181, 0.1);
+      box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
+    }
+
+    /* Dark mode styles */
+    [data-theme="dark"] .theme-toggle {
+      color: #00ADB5;
+      box-shadow: 0 2px 8px rgba(0, 173, 181, 0.2);
+    }
+
+    [data-theme="dark"] .theme-toggle:hover {
+      background: rgba(0, 173, 181, 0.15);
+      box-shadow: 0 4px 12px rgba(0, 173, 181, 0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <button class="toggle-sidebar">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      <div class="logo">
+        <img src="logo-white.png" alt="PNR Logo" />
+        <h2>Bicol Express</h2>
+      </div>
+      <ul class="nav-links">
+        <li>
+          <a href="homepage.html" class="active">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="bookticket.html">
+            <i class="fas fa-ticket-alt"></i>
+            <span>Book Ticket</span>
+          </a>
+        </li>
+        <li>
+          <a href="booking-history.html">
+            <i class="fas fa-history"></i>
+            <span>Booking History</span>
+          </a>
+        </li>
+        <li>
+          <a href="train-schedule.html">
+            <i class="fas fa-train"></i>
+            <span>Train Schedule</span>
+          </a>
+        </li>
+        <li>
+          <a href="profile.html">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+          </a>
+        </li>
+        <li>
+          <a href="#">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    <!-- End Sidebar -->
+
+    <div class="container">
+      <main class="content">
+        <div class="header">
+          <div class="header-content">
+            <h1>My Dashboard</h1>
+            <button id="theme-toggle" class="theme-toggle">
+              <i class="fas fa-sun"></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="header-layout">
+          <!-- LEFT: Welcome Panel -->
+          <div class="welcome-panel">
+            <h3>Welcome, User to the PNR Ticket Reservation System!</h3>
+            <p>
+              Book your tickets,
+              check schedules, and travel with ease. Secure your seat now for
+              a smooth and hassle-free journey!
+            </p>
+            <button class="book-ticket">
+              <i class="fas fa-ticket-alt"></i>
+              Book Ticket
+            </button>
+          </div>
+
+          <!-- RIGHT: Stats Panel -->
+          <div class="stats-panel">
+            <div class="stat-card">
+              <i class="fas fa-ticket-alt icon"></i>
+              <div class="label">Active Bookings</div>
+              <div class="value">2</div>
+            </div>
+            <div class="stat-card">
+              <i class="fas fa-route icon"></i>
+              <div class="label">Total Trips</div>
+              <div class="value">4</div>
+            </div>
+          </div>
+        </div>
+        <!-- END header-layout -->
+
+        <!-- RECENT BOOKINGS SECTION -->
+        <section class="recent-bookings">
+          <div class="recent-bookings-header">
+            <h3>Recent Bookings</h3>
+            <a href="booking-history.html" class="view-all">
+              View All Bookings
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Booking ID</th>
+                <th>Route</th>
+                <th>Train</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>PNR-123-456</td>
+                <td>Naga - Legazpi</td>
+                <td>Bicol Express (101)</td>
+                <td>February 11, 2025</td>
+                <td>10:00 PM</td>
+                <td>
+                  <span class="status confirmed">
+                    <i class="fas fa-check-circle"></i>
+                    Confirmed
+                  </span>
+                </td>
+              </tr>
+              <tr>
+                <td>PNR-123-456</td>
+                <td>Legazpi - Naga</td>
+                <td>Mayon Limited (102)</td>
+                <td>February 11, 2025</td>
+                <td>12:15 PM</td>
+                <td>
+                  <span class="status pending">
+                    <i class="fas fa-clock"></i>
+                    Pending
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Add Logout Modal -->
+  <div id="logoutModal" class="modal" style="display: none">
+    <div class="modal-content">
+      <h2><i class="fas fa-sign-out-alt"></i> Logout</h2>
+      <p style="margin: 20px 0; color: #4a5568">
+        Are you sure you want to logout from your account?
+      </p>
+      <div class="modal-buttons">
+        <button class="cancel-btn" onclick="closeLogoutModal()">Cancel</button>
+        <button class="logout-btn" onclick="performLogout()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add loading overlay -->
+  <div class="loading-overlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <script>
+    // Load dashboard data when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      loadDashboardData();
+      
+      // Add click handler for Book Ticket button
+      document.querySelector('.book-ticket').addEventListener('click', function() {
+        window.location.href = 'bookticket.html';
+      });
+    });
+
+    function loadDashboardData() {
+      fetch('fetch_dashboard_data.php')
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Update user name
+            document.querySelector('.welcome-panel h3').textContent = `Welcome, ${data.user_name}`;
+            
+            // Update stats
+            document.querySelector('.stats-panel .stat-card:nth-child(1) .value').textContent = data.active_bookings;
+            document.querySelector('.stats-panel .stat-card:nth-child(2) .value').textContent = data.total_trips;
+            
+            // Update recent bookings table
+            const tbody = document.querySelector('table tbody');
+            tbody.innerHTML = ''; // Clear existing rows
+            
+            data.recent_bookings.forEach(booking => {
+              const row = document.createElement('tr');
+              
+              // Determine status class and icon
+              let statusClass = '';
+              let statusIcon = '';
+              
+              switch(booking.status) {
+                case 'Confirmed':
+                  statusClass = 'confirmed';
+                  statusIcon = 'check-circle';
+                  break;
+                case 'Reserved':
+                  statusClass = 'reserved';
+                  statusIcon = 'clock';
+                  break;
+                case 'Pending':
+                  statusClass = 'pending';
+                  statusIcon = 'clock';
+                  break;
+                default:
+                  statusClass = 'pending';
+                  statusIcon = 'clock';
+              }
+              
+              row.innerHTML = `
+                <td>${booking.booking_id}</td>
+                <td>${booking.route}</td>
+                <td>${booking.train || 'Unknown'}</td>
+                <td>${booking.date}</td>
+                <td>${booking.time}</td>
+                <td>
+                  <span class="status ${statusClass}">
+                    <i class="fas fa-${statusIcon}"></i>
+                    ${booking.status}
+                  </span>
+                </td>
+              `;
+              
+              tbody.appendChild(row);
+            });
+            
+            // If no recent bookings, show a message
+            if (data.recent_bookings.length === 0) {
+              tbody.innerHTML = `
+                <tr>
+                  <td colspan="6" style="text-align: center;">
+                    No recent bookings found
+                  </td>
+                </tr>
+              `;
+            }
+          } else {
+            // Handle error - redirect to login if not logged in
+            if (data.message.includes('Please login')) {
+              window.location.href = 'login.html';
+            } else {
+              alert('Error loading dashboard: ' + data.message);
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Failed to load dashboard data. Please try again later.');
+        });
+    }
+
+    // Sidebar Toggle
+    document.addEventListener("DOMContentLoaded", function() {
+      const sidebar = document.querySelector(".sidebar");
+      const toggleBtn = document.querySelector(".toggle-sidebar");
+      const icon = toggleBtn.querySelector("i");
+      const rootElement = document.documentElement;
+
+      // Check localStorage for saved state
+      const isSidebarCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+      if (isSidebarCollapsed) {
+        rootElement.classList.add("sidebar-collapsed");
+        icon.style.transform = "rotate(180deg)";
+      }
+
+      toggleBtn.addEventListener("click", function() {
+        rootElement.classList.toggle("sidebar-collapsed");
+     
+        const isCollapsed = rootElement.classList.contains("sidebar-collapsed");
+        icon.style.transform = isCollapsed ? "rotate(180deg)" : "";
+        localStorage.setItem("sidebarCollapsed", isCollapsed);
+      });
+    });
+
+    // Highlight active menu item based on current page
+    document.addEventListener("DOMContentLoaded", function() {
+      const currentPage = window.location.pathname.split("/").pop();
+      const navLinks = document.querySelectorAll(".nav-links a");
+
+      navLinks.forEach((link) => {
+        if (link.getAttribute("href") === currentPage) {
+          link.classList.add("active");
+        }
+      });
+    });
+
+    // Add logout functionality
+    function showLogoutModal() {
+      document.getElementById("logoutModal").style.display = "flex";
+    }
+
+    function closeLogoutModal() {
+      document.getElementById("logoutModal").style.display = "none";
+    }
+
+    function showLoading() {
+      document.querySelector(".loading-overlay").classList.add("visible");
+    }
+
+    function hideLoading() {
+      document.querySelector(".loading-overlay").classList.remove("visible");
+    }
+
+    async function performLogout() {
+      try {
+        showLoading();
+        const response = await fetch("api/auth/logout.php", {
+          method: "POST",
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          throw new Error("Logout failed");
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+          // Show success message briefly before redirecting
+          hideLoading();
+          setTimeout(() => {
+            window.location.href = "login.php";
+          }, 500);
+        } else {
+          throw new Error(result.error || "Logout failed");
+        }
+      } catch (error) {
+        hideLoading();
+        alert("Failed to logout: " + error.message);
+        closeLogoutModal();
+      }
+    }
+
+    // Update the logout link handler
+    const logoutLink = document.querySelector(".nav-links li:last-child a");
+    logoutLink.addEventListener("click", function (e) {
+      e.preventDefault();
+      showLogoutModal();
+    });
+
+    window.onclick = function (event) {
+      const logoutModal = document.getElementById("logoutModal");
+      if (event.target === logoutModal) {
+        logoutModal.style.display = "none";
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const themeToggle = document.getElementById('theme-toggle');
+      const icon = themeToggle.querySelector('i');
+      
+      if (document.documentElement.getAttribute('data-theme') === 'dark') {
+        icon.classList.replace('fa-sun', 'fa-moon');
+      }
+
+      themeToggle.addEventListener('click', function() {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('darkMode', newTheme === 'dark');
+        
+        icon.classList.toggle('fa-sun');
+        icon.classList.toggle('fa-moon');
+      });
+    });
+  </script>
+</body>
+</html>

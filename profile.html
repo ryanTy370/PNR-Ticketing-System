@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PNR - Profile</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="icon" type="image/x-icon" href="favicon/favicon.png">
+    <link rel="stylesheet" href="sidebar.css" />
+    <link rel="stylesheet" href="css/profile.css" />
+  </head>
+  <body>
+    <div class="dashboard">
+      <div class="sidebar" id="sidebar">
+        <button class="toggle-sidebar">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="logo">
+          <img src="logo-white.png" alt="PNR Logo" />
+          <h2>Bicol Express</h2>
+        </div>
+        <ul class="nav-links">
+          <li>
+            <a href="homepage.html">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="bookticket.html">
+              <i class="fas fa-ticket-alt"></i>
+              <span>Book Ticket</span>
+            </a>
+          </li>
+          <li>
+            <a href="booking-history.html">
+              <i class="fas fa-history"></i>
+              <span>Booking History</span>
+            </a>
+          </li>
+          <li>
+            <a href="train-schedule.html">
+              <i class="fas fa-train"></i>
+              <span>Train Schedule</span>
+            </a>
+          </li>
+          <li>
+            <a href="profile.html" class="active">
+              <i class="fas fa-user"></i>
+              <span>Profile</span>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Logout</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+      <div class="container">
+        <main class="content">
+          <div class="header">
+            <h1>Profile</h1>
+          </div>
+          
+          <div class="profile-container">
+            <div class="profile-main">
+              <div class="profile-header">
+                <div class="profile-info">
+                  <h1><span id="userFullName">Loading...</span></h1>
+                  <p>User ID: <span id="userId">Loading...</span></p>
+                  <span class="verification-badge">
+                    <i class="fas fa-check-circle"></i>
+                    Verified Account
+                  </span>
+                </div>
+              </div>
+
+              <div class="profile-section">
+                <div class="section-title">
+                  <span>Personal Information</span>
+                  <button class="edit-btn" id="editPersonalInfo">
+                    <i class="fas fa-pencil"></i> Edit
+                  </button>
+                </div>
+                <div class="info-grid">
+                  <div class="info-item">
+                    <div class="info-label">First Name</div>
+                    <div class="info-value" id="firstName">Loading...</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Middle Initial</div>
+                    <div class="info-value" id="middleInitial">Loading...</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Last Name</div>
+                    <div class="info-value" id="lastName">Loading...</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value" id="email">Loading...</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Phone Number</div>
+                    <div class="info-value" id="phoneNumber">Loading...</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Date of Birth</div>
+                    <div class="info-value" id="dob">Loading...</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Address</div>
+                    <div class="info-value" id="address">Loading...</div>
+                  </div>
+                  <div class="info-item">
+                    <div class="info-label">Member Since</div>
+                    <div class="info-value" id="createdAt">Loading...</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="profile-sidebar">
+              <div class="sidebar-card">
+                <h3>Account Settings</h3>
+                <ul class="preferences-list">
+                  <li class="preference-item">
+                    <span>Change Password</span>
+                    <button class="change-password-btn" id="changePasswordBtn">
+                      <i class="fas fa-key"></i>
+                    </button>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="sidebar-card" style="margin-top: 20px;">
+                <h3>User Preferences</h3>
+                <ul class="preferences-list">
+                  <li class="preference-item">
+                    <span>Dark Mode</span>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="darkModeToggle">
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <h2>Edit Profile</h2>
+        <form id="editProfileForm">
+          <div class="form-group">
+            <label for="editFirstName">First Name</label>
+            <input type="text" id="editFirstName" required />
+          </div>
+          <div class="form-group">
+            <label for="editMiddleInitial">Middle Initial</label>
+            <input type="text" id="editMiddleInitial" maxlength="5" />
+          </div>
+          <div class="form-group">
+            <label for="editLastName">Last Name</label>
+            <input type="text" id="editLastName" required />
+          </div>
+          <div class="form-group">
+            <label for="editPhone">Phone Number</label>
+            <input type="tel" id="editPhone" required pattern="[+639,0-9]{11,13}" />
+          </div>
+          <div class="form-group">
+            <label for="editAddress">Address</label>
+            <textarea id="editAddress" required></textarea>
+          </div>
+          <div class="modal-buttons">
+            <button type="submit" class="save-btn">Save Changes</button>
+            <button type="button" class="cancel-btn" onclick="closeEditModal()">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="passwordModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <h2>Change Password</h2>
+        <form id="changePasswordForm">
+          <div class="form-group">
+            <label for="currentPassword">Current Password</label>
+            <input type="password" id="currentPassword" required />
+          </div>
+          <div class="form-group">
+            <label for="newPassword">New Password</label>
+            <input type="password" id="newPassword" required />
+          </div>
+          <div class="form-group">
+            <label for="confirmPassword">Confirm New Password</label>
+            <input type="password" id="confirmPassword" required />
+          </div>
+          <div class="modal-buttons">
+            <button type="submit" class="save-btn">Change Password</button>
+            <button
+              type="button"
+              class="cancel-btn"
+              onclick="closePasswordModal()"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <h2><i class="fas fa-sign-out-alt"></i> Logout</h2>
+        <p style="margin: 20px 0; color: #4a5568">
+          Are you sure you want to logout from your account?
+        </p>
+        <div class="modal-buttons">
+          <button class="cancel-btn" onclick="closeLogoutModal()">
+            Cancel
+          </button>
+          <button class="logout-btn" onclick="performLogout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add loading overlay -->
+    <div class="loading-overlay">
+      <div class="loading-spinner"></div>
+    </div>
+
+    <script>
+      // Apply sidebar state immediately before page loads
+      (function() {
+        const sidebar = document.getElementById('sidebar');
+        const isSidebarCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+        if (isSidebarCollapsed) {
+          sidebar.classList.add("collapsed");
+          // Also update the icon immediately
+          const icon = sidebar.querySelector(".toggle-sidebar i");
+          if (icon) {
+            icon.classList.replace("fa-chevron-left", "fa-chevron-right");
+          }
+        }
+
+        // Apply dark mode state
+        const isDarkMode = localStorage.getItem("darkMode") === "true";
+        if (isDarkMode) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+
+      // Sidebar Toggle
+      document.addEventListener("DOMContentLoaded", function() {
+        const sidebar = document.querySelector(".sidebar");
+        const toggleBtn = document.querySelector(".toggle-sidebar");
+        const icon = toggleBtn.querySelector("i");
+
+        toggleBtn.addEventListener("click", function() {
+          if (!sidebar.classList.contains("collapsed")) {
+            // When opening -> closing
+            sidebar.classList.add("collapsing");
+            setTimeout(() => {
+              sidebar.classList.add("collapsed");
+              sidebar.classList.remove("collapsing");
+              icon.classList.replace("fa-chevron-left", "fa-chevron-right");
+              localStorage.setItem("sidebarCollapsed", "true");
+            }, 150); // Half of the transition time
+          } else {
+            // When closed -> opening
+            sidebar.classList.remove("collapsed");
+            icon.classList.replace("fa-chevron-right", "fa-chevron-left");
+            localStorage.setItem("sidebarCollapsed", "false");
+          }
+        });
+      });
+
+      // Dark mode toggle functionality
+      document.addEventListener("DOMContentLoaded", function() {
+        const darkModeToggle = document.getElementById("darkModeToggle");
+        
+        // Set initial state
+        darkModeToggle.checked = localStorage.getItem("darkMode") === "true";
+        
+        darkModeToggle.addEventListener("change", function() {
+          if (this.checked) {
+            document.documentElement.setAttribute("data-theme", "dark");
+            localStorage.setItem("darkMode", "true");
+          } else {
+            document.documentElement.removeAttribute("data-theme");
+            localStorage.setItem("darkMode", "false");
+          }
+        });
+      });
+
+      // Profile functionality
+      document.addEventListener("DOMContentLoaded", function () {
+        // Fetch logged-in user data from the database
+        fetchUserData();
+
+        // Edit Profile Modal
+        const editModal = document.getElementById("editModal");
+        const editBtn = document.getElementById("editPersonalInfo");
+        const editForm = document.getElementById("editProfileForm");
+
+        editBtn.addEventListener("click", function () {
+          // Populate form with current user data
+          const currentData = getCurrentUserData();
+          document.getElementById("editFirstName").value =
+            currentData.FirstName;
+          document.getElementById("editMiddleInitial").value =
+            currentData.MiddleInitial;
+          document.getElementById("editLastName").value = currentData.LastName;
+          document.getElementById("editPhone").value = currentData.PhoneNumber;
+          document.getElementById("editAddress").value = currentData.Address;
+          editModal.style.display = "flex";
+        });
+
+        editForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          try {
+            // Show loading state
+            const submitBtn = this.querySelector(".save-btn");
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = "Saving...";
+            submitBtn.disabled = true;
+
+            const formData = {
+              FirstName: document.getElementById("editFirstName").value.trim(),
+              MiddleInitial: document
+                .getElementById("editMiddleInitial")
+                .value.trim(),
+              LastName: document.getElementById("editLastName").value.trim(),
+              PhoneNumber: document.getElementById("editPhone").value.trim(),
+              Address: document.getElementById("editAddress").value.trim(),
+            };
+
+            const response = await updateUserProfile(formData);
+
+            if (response.success) {
+              await fetchUserData(); // Refresh the displayed data
+              closeEditModal();
+              alert(response.message || "Profile updated successfully!");
+            } else {
+              throw new Error(response.error || "Failed to update profile");
+            }
+          } catch (error) {
+            console.error("Submit error:", error);
+            alert(error.message);
+          } finally {
+            // Reset button state
+            const submitBtn = this.querySelector(".save-btn");
+            submitBtn.textContent = "Save Changes";
+            submitBtn.disabled = false;
+          }
+        });
+
+        // Change Password Modal
+        const passwordModal = document.getElementById("passwordModal");
+        const changePasswordBtn = document.getElementById("changePasswordBtn");
+        const passwordForm = document.getElementById("changePasswordForm");
+
+        changePasswordBtn.addEventListener("click", function () {
+          passwordModal.style.display = "flex";
+        });
+
+        passwordForm.addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const currentPassword =
+            document.getElementById("currentPassword").value;
+          const newPassword = document.getElementById("newPassword").value;
+          const confirmPassword =
+            document.getElementById("confirmPassword").value;
+
+          if (newPassword !== confirmPassword) {
+            alert("New passwords do not match!");
+            return;
+          }
+
+          try {
+            const response = await changePassword(currentPassword, newPassword);
+            if (response.success) {
+              alert("Password changed successfully!");
+              closePasswordModal();
+              // Clear the form
+              this.reset();
+            } else {
+              alert("Failed to change password: " + response.message);
+            }
+          } catch (error) {
+            alert("Error changing password: " + error.message);
+          }
+        });
+
+        // Add logout link handler
+        const logoutLink = document.querySelector(".nav-links li:last-child a");
+        logoutLink.addEventListener("click", function (e) {
+          e.preventDefault();
+          showLogoutModal();
+        });
+      });
+
+      // Function to fetch user data from the database
+      async function fetchUserData() {
+        try {
+          console.log("Fetching user data...");
+          const response = await fetch("api/user/profile.php", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include", // Include session cookies
+          });
+
+          console.log("Response status:", response.status);
+          const responseText = await response.text();
+          console.log("Raw response:", responseText);
+
+          let userData;
+          try {
+            userData = JSON.parse(responseText);
+          } catch (e) {
+            console.error("Failed to parse JSON:", e);
+            throw new Error("Invalid response format from server");
+          }
+
+          if (!response.ok) {
+            throw new Error(userData.error || `HTTP error! status: ${response.status}`);
+          }
+          
+          if (userData.error) {
+            throw new Error(userData.error);
+          }
+
+          console.log("User data received:", userData);
+          updateProfileDisplay(userData);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          alert("Failed to load user profile: " + error.message);
+        }
+      }
+
+      // Function to update the profile display with user data
+      function updateProfileDisplay(userData) {
+        document.getElementById("userFullName").textContent = `${
+          userData.FirstName
+        } ${userData.MiddleInitial ? userData.MiddleInitial + "." : ""} ${
+          userData.LastName
+        }`;
+        document.getElementById("userId").textContent = userData.UserID;
+        document.getElementById("firstName").textContent = userData.FirstName;
+        document.getElementById("middleInitial").textContent =
+          userData.MiddleInitial || "N/A";
+        document.getElementById("lastName").textContent = userData.LastName;
+        document.getElementById("email").textContent = userData.Email;
+        document.getElementById("phoneNumber").textContent =
+          userData.PhoneNumber;
+        document.getElementById("dob").textContent = new Date(
+          userData.DOB
+        ).toLocaleDateString();
+        document.getElementById("address").textContent = userData.Address;
+        document.getElementById("createdAt").textContent = new Date(
+          userData.Created_at
+        ).toLocaleDateString();
+      }
+
+      // Function to get current user data from the display
+      function getCurrentUserData() {
+        return {
+          FirstName: document.getElementById("firstName").textContent,
+          MiddleInitial: document.getElementById("middleInitial").textContent,
+          LastName: document.getElementById("lastName").textContent,
+          PhoneNumber: document.getElementById("phoneNumber").textContent,
+          Address: document.getElementById("address").textContent,
+        };
+      }
+
+      // Function to update user profile
+      async function updateUserProfile(formData) {
+        try {
+          const response = await fetch("api/user/profile/update.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify(formData),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Failed to update profile");
+          }
+
+          // Log the response for debugging
+          console.log("Update response:", result);
+
+          return result;
+        } catch (error) {
+          console.error("Profile update error:", error);
+          throw new Error("Failed to update profile: " + error.message);
+        }
+      }
+
+      // Function to change password
+        async function changePassword(currentPassword, newPassword) {
+            try {
+                const response = await fetch("api/user/change-password.php", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({
+                        currentPassword,
+                        newPassword,
+                    }),
+                });
+
+                // First get the raw response text
+                const responseText = await response.text();
+
+                // Try to parse as JSON
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                } catch (e) {
+                    // If parsing fails, throw with raw response
+                    throw new Error(`${responseText.substring(0, 100)}`);
+                }
+
+                if (!result.success) {
+                    throw new Error(result.error || "Password change failed");
+                }
+
+                return result;
+            } catch (error) {
+                console.error("Password change error:", error);
+                throw error;
+            }
+        }
+
+        // Form submission handler
+        document.getElementById("changePasswordForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const form = e.target;
+            const submitBtn = form.querySelector("button[type='submit']");
+            const currentPassword = document.getElementById("currentPassword").value;
+            const newPassword = document.getElementById("newPassword").value;
+            const confirmPassword = document.getElementById("confirmPassword").value;
+
+            // Clear previous error messages
+            document.getElementById("passwordError").textContent = "";
+
+            // Client-side validation
+            if (newPassword !== confirmPassword) {
+                document.getElementById("passwordError").textContent = "New passwords don't match!";
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                document.getElementById("passwordError").textContent = "Password must be at least 8 characters";
+                return;
+            }
+
+            try {
+                // UI feedback
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Changing...";
+
+                const result = await changePassword(currentPassword, newPassword);
+
+                // Success
+                alert(result.message);
+                form.reset();
+                document.getElementById("passwordModal").style.display = "none"; // Hide modal if used
+            } catch (error) {
+                // Clean error message (remove any HTML tags)
+                const cleanError = error.message.replace(/<[^>]*>?/gm, '');
+                document.getElementById("passwordError").textContent = cleanError;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Change Password";
+            }
+        });
+  
+
+      function closeEditModal() {
+        document.getElementById("editModal").style.display = "none";
+      }
+
+      function closePasswordModal() {
+        document.getElementById("passwordModal").style.display = "none";
+      }
+
+      // Logout Modal Functions
+      function showLogoutModal() {
+        document.getElementById("logoutModal").style.display = "flex";
+      }
+
+      function closeLogoutModal() {
+        document.getElementById("logoutModal").style.display = "none";
+      }
+
+      function showLoading() {
+        document.querySelector(".loading-overlay").classList.add("visible");
+      }
+
+      function hideLoading() {
+        document.querySelector(".loading-overlay").classList.remove("visible");
+      }
+
+      async function performLogout() {
+        try {
+          showLoading();
+          const response = await fetch("api/auth/logout.php", {
+            method: "POST",
+            credentials: "include",
+          });
+
+          if (!response.ok) {
+            throw new Error("Logout failed");
+          }
+
+          const result = await response.json();
+
+          if (result.success) {
+            // Show success message briefly before redirecting
+            hideLoading();
+            setTimeout(() => {
+              window.location.href = "login.php";
+            }, 500);
+          } else {
+            throw new Error(result.error || "Logout failed");
+          }
+        } catch (error) {
+          hideLoading();
+          alert("Failed to logout: " + error.message);
+          closeLogoutModal();
+        }
+      }
+
+      // Close logout modal when clicking outside
+      window.onclick = function (event) {
+        const logoutModal = document.getElementById("logoutModal");
+        const editModal = document.getElementById("editModal");
+        const passwordModal = document.getElementById("passwordModal");
+
+        if (event.target === logoutModal) {
+          logoutModal.style.display = "none";
+        }
+        if (event.target === editModal) {
+          editModal.style.display = "none";
+        }
+        if (event.target === passwordModal) {
+          passwordModal.style.display = "none";
+        }
+      };
+    </script>
+  </body>
+</html>

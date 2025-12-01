@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNR - Book Ticket</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+    <link rel="icon" type="image/x-icon" href="favicon/favicon.png">
+    <link rel="stylesheet" href="sidebar.css" />
+    <link rel="stylesheet" href="user_side_css/bookticket.css" />
+    <link rel="stylesheet" href="user_side_css/icon-fix.css" />
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Add Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <button class="toggle-sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="logo">
+                <img src="logo-white.png" alt="PNR Logo" />
+                <h2>Bicol Express</h2>
+            </div>
+            <ul class="nav-links">
+                <li>
+                    <a href="homepage.html">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="bookticket.html" class="active">
+                        <i class="fas fa-ticket-alt"></i>
+                        <span>Book Ticket</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="booking-history.html">
+                        <i class="fas fa-history"></i>
+                        <span>Booking History</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="train-schedule.html">
+                        <i class="fas fa-train"></i>
+                        <span>Train Schedule</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="profile.html">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <!-- End Sidebar -->
+
+        <div class="container">
+            <main class="content">
+                <div class="header">
+                    <div class="header-content">
+                        <h1>Book Ticket</h1>
+                        <button id="theme-toggle" class="theme-toggle">
+                            <i class="fas fa-sun"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="booking-steps">
+                    <div class="step active" data-step="1">
+                        <div class="step-number">1</div>
+                        <div class="step-label">Trip Details</div>
+                    </div>
+                    <div class="step" data-step="2">
+                        <div class="step-number">2</div>
+                        <div class="step-label">Payment</div>
+                    </div>
+                    <div class="step" data-step="3">
+                        <div class="step-number">3</div>
+                        <div class="step-label">Confirmation</div>
+                    </div>
+                </div>
+
+                <form id="bookingForm" action="process_booking.php" method="POST">
+                    <!-- Step 1: Trip Details -->
+                    <div class="form-section active" data-step="1">
+                        <div class="form-row mb-4">
+                            <div class="form-group col-md-6">
+                                <label for="departure">Departure Station</label>
+                                <div class="search-select-container">
+                                    <div class="search-input-wrapper">
+                                        <input type="text" class="form-control station-search-input" id="departureSearch" placeholder="Search stations...">
+                                        <i class="fas fa-search search-icon"></i>
+                                    </div>
+                                    <select class="form-control station-select" id="departure" name="departure" required>
+                                        <option value="">Select Departure Station</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="arrival">Arrival Station</label>
+                                <div class="search-select-container">
+                                    <div class="search-input-wrapper">
+                                        <input type="text" class="form-control station-search-input" id="arrivalSearch" placeholder="Search stations...">
+                                        <i class="fas fa-search search-icon"></i>
+                                    </div>
+                                    <select class="form-control station-select" id="arrival" name="arrival" required>
+                                        <option value="">Select Arrival Station</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                      
+                        <!-- Date selection with availability -->
+                        <div id="date-selection-container" class="mb-4">
+                            <div class="calendar-header-controls">
+                                <h4 class="mb-3">Select Travel Date</h4>
+                                <button type="button" id="view-all-schedules-btn" class="btn btn-outline-primary">
+                                    <i class="fas fa-calendar-check"></i> View All Available Schedules
+                                </button>
+                            </div>
+                            <div class="schedule-availability-message alert alert-info" role="alert">
+                                <i class="fas fa-info-circle"></i> 
+                                Select both departure and arrival stations to see available travel dates
+                            </div>
+                            <div id="availability-calendar"></div>
+                        </div>
+                        
+                          <!-- Fleet Type Selection -->
+                        <div class="mb-4">
+                            <label>Preferred Fleet Type (Optional)</label>
+                            <div class="fleet-type-selection">
+                                <div class="fleet-type-option selected" data-fleet-type="all">
+                                    <div class="fleet-icon">
+                                        <i class="fas fa-train"></i>
+                                    </div>
+                                    <h5>All Types</h5>
+                                    <p>Show all available fleet types</p>
+                                </div>
+                                <div class="fleet-type-option" data-fleet-type="Economy">
+                                    <div class="fleet-icon">
+                                        <i class="fas fa-chair"></i>
+                                    </div>
+                                    <h5>Economy</h5>
+                                    <p>Standard seating with basic amenities</p>
+                                </div>
+                                <div class="fleet-type-option" data-fleet-type="Reclining Aircon">
+                                    <div class="fleet-icon">
+                                        <i class="fas fa-snowflake"></i>
+                                    </div>
+                                    <h5>Reclining Aircon</h5>
+                                    <p>Comfortable reclining seats with air conditioning</p>
+                                </div>
+                                <div class="fleet-type-option" data-fleet-type="Family Sleeper">
+                                    <div class="fleet-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <h5>Family Sleeper</h5>
+                                    <p>Spacious sleeping arrangements for families</p>
+                                </div>
+                                <div class="fleet-type-option" data-fleet-type="Executive Sleeper">
+                                    <div class="fleet-icon">
+                                        <i class="fas fa-bed"></i>
+                                    </div>
+                                    <h5>Executive Sleeper</h5>
+                                    <p>Premium sleeping accommodations with extra privacy</p>
+                                </div>
+                            </div>
+                            <input type="hidden" id="preferred_fleet_type" name="preferred_fleet_type" value="all">
+                        </div>
+                        
+                        <!-- Schedule selection cards -->
+                        <div id="schedule-selection-container" style="display: none;">
+                            <h4 class="mb-3">Available Schedules for <span id="selected-date-display"></span></h4>
+                            <div class="schedule-availability-message alert alert-info" role="alert">
+                                <i class="fas fa-info-circle"></i> 
+                                Select a date to view available schedules
+                            </div>
+                            <div id="schedules-list" class="schedules-grid">
+                                <!-- Schedule cards will be inserted here -->
+                            </div>
+                            <input type="hidden" id="schedule" name="schedule" required>
+                            <input type="hidden" id="travel_date" name="travel_date" required>
+                            <input type="hidden" id="train" name="train" required>
+                            <input type="hidden" id="fleet_type" name="fleet_type" required>
+                        </div>
+                    </div>
+
+                    
+
+                    <!-- Step 2: Payment -->
+                    <div class="form-section" data-step="2">
+                        <h3>Select Payment Method</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 20px;">Choose your preferred payment method to complete the booking.</p>
+                        <div class="payment-methods">
+                            <div class="payment-method" data-method="over-the-counter">
+                                <i class="fas fa-store"></i>
+                                <h4>Over-the-counter</h4>
+                                <p>Pay at any PNR station</p>
+                            </div>
+                            <div class="payment-method" data-method="gcash">
+                                <i class="fas fa-mobile-alt"></i>
+                                <h4>GCash</h4>
+                                <p>Pay using GCash wallet</p>
+                            </div>
+                            <div class="payment-method" data-method="bank-transfer">
+                                <i class="fas fa-university"></i>
+                                <h4>Bank Transfer</h4>
+                                <p>Direct bank transfer</p>
+                            </div>
+                            <div class="payment-method" data-method="beep-card">
+                                <i class="fas fa-credit-card"></i>
+                                <h4>Beep Card</h4>
+                                <p>Pay using Beep card</p>
+                            </div>
+                        </div>
+                        <input type="hidden" id="payment_method" name="payment_method" required>
+                    </div>
+
+                    <!-- Step 3: Confirmation -->
+                    <div class="form-section" data-step="3">
+                        <h3>Booking Summary</h3>
+                        <div id="booking-summary">
+                            <!-- Will be populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Navigation Buttons -->
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-secondary" id="prevBtn" style="display: none;">
+                            <i class="fas fa-arrow-left"></i> Previous
+                        </button>
+                        <button type="button" class="btn btn-primary" id="nextBtn">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn" style="display: none;">
+                            Confirm Booking <i class="fas fa-check"></i>
+                        </button>
+                    </div>
+                </form>
+            </main>
+        </div>
+    </div>
+
+    <!-- Payment Method Modals -->
+    <!-- Over-the-counter Modal -->
+    <div class="modal" id="over-the-counter-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-store"></i> Over-the-counter Payment</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Pay for your ticket at any PNR station counter.</p>
+                <div class="payment-instructions">
+                    <ol>
+                        <li>Visit any PNR station within 24 hours of booking</li>
+                        <li>Present your Booking Reference Number to the counter staff</li>
+                        <li>Pay the exact amount in cash</li>
+                        <li>Receive your printed ticket</li>
+                    </ol>
+                </div>
+                <div class="payment-details">
+                    <p><strong>Booking Reference:</strong> <span id="otc-reference">Loading...</span> 
+                        <button class="copy-button" data-copy="otc-reference">Copy</button>
+                    </p>
+                    <p><strong>Valid Until:</strong> <span id="otc-valid-until">Loading...</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GCash Modal -->
+    <div class="modal" id="gcash-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-mobile-alt"></i> GCash Payment</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Pay using your GCash wallet.</p>
+                <div class="payment-instructions">
+                    <ol>
+                        <li>Open your GCash app</li>
+                        <li>Select "Send Money"</li>
+                        <li>Enter the PNR GCash number</li>
+                        <li>Enter the exact amount</li>
+                        <li>Use your Booking Reference as payment reference</li>
+                    </ol>
+                </div>
+                <div class="payment-details">
+                    <p><strong>GCash Number:</strong> 09XX-XXX-XXXX 
+                        <button class="copy-button" data-copy="gcash-number">Copy</button>
+                    </p>
+                    <p><strong>Amount:</strong> <span id="gcash-amount">Loading...</span></p>
+                    <p><strong>Reference:</strong> <span id="gcash-reference">Loading...</span>
+                        <button class="copy-button" data-copy="gcash-reference">Copy</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bank Transfer Modal -->
+    <div class="modal" id="bank-transfer-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-university"></i> Bank Transfer</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Transfer the payment to our bank account.</p>
+                <div class="payment-instructions">
+                    <ol>
+                        <li>Log in to your online banking</li>
+                        <li>Select "Transfer to Another Bank"</li>
+                        <li>Enter PNR's bank details</li>
+                        <li>Enter the exact amount</li>
+                        <li>Use your Booking Reference as payment reference</li>
+                    </ol>
+                </div>
+                <div class="payment-details">
+                    <p><strong>Bank Name:</strong> Sample Bank</p>
+                    <p><strong>Account Name:</strong> PNR Ticketing</p>
+                    <p><strong>Account Number:</strong> 1234-5678-9012 
+                        <button class="copy-button" data-copy="bank-account">Copy</button>
+                    </p>
+                    <p><strong>Amount:</strong> <span id="bank-amount">Loading...</span></p>
+                    <p><strong>Reference:</strong> <span id="bank-reference">Loading...</span>
+                        <button class="copy-button" data-copy="bank-reference">Copy</button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Beep Card Modal -->
+    <div class="modal" id="beep-card-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-credit-card"></i> Beep Card Payment</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Pay using your Beep card at any PNR station.</p>
+                <div class="payment-instructions">
+                    <ol>
+                        <li>Visit any PNR station with Beep card facility</li>
+                        <li>Present your Booking Reference Number</li>
+                        <li>Tap your Beep card to pay</li>
+                        <li>Receive your printed ticket</li>
+                    </ol>
+                </div>
+                <div class="payment-details">
+                    <p><strong>Amount:</strong> <span id="beep-amount">Loading...</span></p>
+                    <p><strong>Reference:</strong> <span id="beep-reference">Loading...</span>
+                        <button class="copy-button" data-copy="beep-reference">Copy</button>
+                    </p>
+                    <p><small>Make sure your Beep card has sufficient balance</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Success Modal -->
+    <div class="modal" id="booking-success-modal" style="display: none;">
+        <div class="modal-content success-modal-content">
+            <div class="success-modal-header">
+                <i class="fas fa-check-circle"></i>
+                <h2>Booking Successful!</h2>
+            </div>
+            <div class="modal-body">
+                <p class="success-message">Thank you for your patronage. We hope to serve you again soon!</p>
+                <div class="booking-details">
+                    <div class="detail-item">
+                        <span class="detail-label">Ticket ID:</span>
+                        <span class="detail-value" id="success-ticket-id">Loading...</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Amount to Pay:</span>
+                        <span class="detail-value" id="success-amount">Loading...</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Payment Method:</span>
+                        <span class="detail-value" id="success-payment-method">Loading...</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary view-history-btn" id="view-history-btn">
+                    View My Bookings <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Logout Modal -->
+    <div id="logoutModal" class="modal" style="display: none">
+        <div class="modal-content">
+            <h2><i class="fas fa-sign-out-alt"></i> Logout</h2>
+            <p style="margin: 20px 0; color: #4a5568">
+                Are you sure you want to logout from your account?
+            </p>
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeLogoutModal()">Cancel</button>
+                <button class="logout-btn" onclick="performLogout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add loading overlay -->
+    <div class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Include jQuery first -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- Include FullCalendar -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.css" rel="stylesheet">
+    <script src="user_side_js/bookticket.js"></script>
+</body>
+</html>

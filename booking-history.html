@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PNR - Booking History</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="icon" type="image/x-icon" href="favicon/favicon.png" />
+    <!-- Add the shared sidebar CSS -->
+    <link rel="stylesheet" href="sidebar.css" />
+    <link rel="stylesheet" href="css/bookingHistory.css" />
+    <script>
+      // Apply sidebar state immediately before page loads
+      (function () {
+        const isSidebarCollapsed =
+          localStorage.getItem("sidebarCollapsed") === "true";
+        if (isSidebarCollapsed) {
+          document.documentElement.style.setProperty("--sidebar-width", "70px");
+          document.documentElement.classList.add("sidebar-collapsed");
+        }
+
+        // Apply dark mode state
+        const isDarkMode = localStorage.getItem("darkMode") === "true";
+        if (isDarkMode) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
+    <style>
+      :root {
+        --sidebar-width: 250px;
+      }
+      .sidebar-collapsed .sidebar {
+        min-width: 70px;
+        width: 70px;
+      }
+      .sidebar-collapsed .logo h2,
+      .sidebar-collapsed .nav-links span {
+        display: none;
+      }
+      .sidebar-collapsed .nav-links a {
+        justify-content: center;
+      }
+      .sidebar-collapsed .nav-links i {
+        margin: 0;
+      }
+      .sidebar-collapsed .toggle-sidebar i {
+        transform: rotate(180deg);
+      }
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-right: 30px;
+      }
+
+      .theme-toggle {
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-size: 24px;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .theme-toggle:hover {
+        background: var(--hover-bg);
+        transform: rotate(15deg) scale(1.1);
+      }
+
+      .theme-toggle i {
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+      }
+
+      /* Light mode styles */
+      [data-theme="light"] .theme-toggle {
+        color: #00adb5;
+        box-shadow: 0 2px 8px rgba(0, 173, 181, 0.2);
+      }
+
+      [data-theme="light"] .theme-toggle:hover {
+        background: rgba(0, 173, 181, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
+      }
+
+      /* Dark mode styles */
+      [data-theme="dark"] .theme-toggle {
+        color: #00adb5;
+        box-shadow: 0 2px 8px rgba(0, 173, 181, 0.2);
+      }
+
+      [data-theme="dark"] .theme-toggle:hover {
+        background: rgba(0, 173, 181, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 173, 181, 0.4);
+      }
+
+      /* Edit Modal Styles */
+      #editBookingModal .modal-content {
+        max-width: 500px;
+        padding: 30px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-primary);
+        font-weight: 500;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--input-bg);
+        color: var(--text-primary);
+        font-size: 14px;
+      }
+
+      .form-control:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(0, 173, 181, 0.2);
+      }
+
+      textarea.form-control {
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      .save-btn {
+        background: linear-gradient(to right, #00adb5, #009199);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+      }
+
+      .save-btn:hover {
+        background: linear-gradient(to right, #00adb5, #008b8b);
+        transform: translateY(-2px);
+      }
+
+      .edit-btn {
+        background: #00adb5;
+        color: white;
+      }
+
+      .edit-btn:hover {
+        background: #009199;
+      }
+
+      /* Cancellation Modal Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        position: relative;
+        background-color: var(--card-bg);
+        margin: auto;
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+        width: 90%;
+        max-width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: modalFadeIn 0.3s ease;
+      }
+
+      @keyframes modalFadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      .modal .close {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        color: var(--text-secondary);
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .modal .close:hover {
+        color: var(--primary-color);
+      }
+
+      .modal h2 {
+        margin-top: 10px;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .modal h2 i {
+        color: #e74c3c;
+      }
+
+      .modal .alert {
+        background-color: #fff3cd;
+        color: #856404;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+      }
+
+      .modal .alert i {
+        font-size: 18px;
+        margin-top: 3px;
+      }
+
+      .modal-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .character-counter {
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-align: right;
+        margin-top: 5px;
+      }
+
+      .form-error {
+        color: #e74c3c;
+        font-size: 14px;
+        margin-top: 5px;
+      }
+
+      /* Status Badge Styles */
+      .status-pending-cancellation {
+        background-color: #f39c12;
+      }
+
+      [data-theme="dark"] .modal .alert {
+        background-color: #463c15;
+        color: #f1cb6c;
+      }
+
+      /* Notification Styles */
+      .notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 9999;
+        animation: slideIn 0.3s ease, fadeOut 0.3s ease 3.7s;
+        max-width: 350px;
+      }
+
+      @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+
+      @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+
+      .notification.success {
+        background-color: #d4edda;
+        color: #155724;
+        border-left: 4px solid #28a745;
+      }
+
+      .notification.error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border-left: 4px solid #dc3545;
+      }
+
+      .notification i {
+        font-size: 18px;
+      }
+
+      .notification p {
+        margin: 0;
+        font-size: 14px;
+      }
+
+      .notification.fade-out {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+
+      /* Make notification dark mode compatible */
+      [data-theme="dark"] .notification.success {
+        background-color: #1e3a29;
+        color: #8cd9a5;
+      }
+
+      [data-theme="dark"] .notification.error {
+        background-color: #3a1e1e;
+        color: #d98c8c;
+      }
+
+      /* Styles for the disabled button */
+      .action-btn.info-btn {
+        background-color: #f39c12;
+        cursor: not-allowed;
+        opacity: 0.8;
+      }
+
+      .action-btn.info-btn:hover {
+        background-color: #f39c12;
+        transform: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard">
+      <div class="sidebar" id="sidebar">
+        <button class="toggle-sidebar">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="logo">
+          <img src="logo-white.png" alt="PNR Logo" />
+          <h2>Bicol Express</h2>
+        </div>
+        <ul class="nav-links">
+          <li>
+            <a href="homepage.html">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="bookticket.html">
+              <i class="fas fa-ticket-alt"></i>
+              <span>Book Ticket</span>
+            </a>
+          </li>
+          <li>
+            <a href="booking-history.html" class="active">
+              <i class="fas fa-history"></i>
+              <span>Booking History</span>
+            </a>
+          </li>
+          <li>
+            <a href="train-schedule.html">
+              <i class="fas fa-train"></i>
+              <span>Train Schedule</span>
+            </a>
+          </li>
+          <li>
+            <a href="profile.html">
+              <i class="fas fa-user"></i>
+              <span>Profile</span>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Logout</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="container">
+        <main class="content">
+          <div class="header">
+            <div class="header-content">
+              <h1>Booking History</h1>
+              <button id="theme-toggle" class="theme-toggle">
+                <i class="fas fa-sun"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="history-container">
+            <div class="filter-section">
+              <div class="search-box">
+                <input type="text" placeholder="Search bookings..." />
+                <i class="fas fa-search"></i>
+              </div>
+              <select class="filter-dropdown">
+                <option>All Bookings</option>
+                <option>Upcoming</option>
+                <option>Completed</option>
+                <option>Pending Cancellation</option>
+                <option>Cancelled</option>
+              </select>
+            </div>
+
+            <div class="booking-card">
+              <div class="booking-header">
+                <div>
+                  <div class="booking-id">Booking #PNR-2024-0123</div>
+                  <div class="booking-date">Booked on Mar 10, 2024</div>
+                </div>
+                <span class="status-badge status-upcoming">Upcoming</span>
+              </div>
+
+              <div class="journey-details">
+                <div class="detail-group">
+                  <span class="detail-label">From</span>
+                  <span class="detail-value">Legazpi Central Station</span>
+                </div>
+                <div class="detail-group">
+                  <span class="detail-label">To</span>
+                  <span class="detail-value">Naga Railway Hub</span>
+                </div>
+                <div class="detail-group">
+                  <span class="detail-label">Date</span>
+                  <span class="detail-value">Mar 20, 2025</span>
+                </div>
+                <div class="detail-group">
+                  <span class="detail-label">Time</span>
+                  <span class="detail-value">08:00 AM</span>
+                </div>
+                <div class="detail-group">
+                  <span class="detail-label">Train</span>
+                  <span class="detail-value">Bicol Express (101)</span>
+                </div>
+                <div class="detail-group">
+                  <span class="detail-label">Amount</span>
+                  <span class="detail-value">₱1000.00</span>
+                </div>
+                <div class="detail-group">
+                  <span class="detail-label">Payment Method</span>
+                  <span class="detail-value">Credit Card</span>
+                </div>
+              </div>
+
+              <div class="qr-code">
+                <i class="fas fa-qr-code fa-3x"></i>
+              </div>
+
+              <div class="booking-actions">
+                <button
+                  class="action-btn view-btn"
+                  onclick="handlers.viewBookingDetails('${booking.booking_id}')"
+                >
+                  <i class="fas fa-eye"></i> View Details
+                </button>
+                ${ booking.status !== "Cancelled" ? `
+                <button
+                  class="action-btn download-btn"
+                  onclick="handlers.downloadTicket('${booking.booking_id}')"
+                >
+                  <i class="fas fa-download"></i> Download Ticket
+                </button>
+                <button
+                  class="action-btn cancel-btn"
+                  onclick="handlers.cancelBooking('${booking.booking_id}')"
+                >
+                  <i class="fas fa-times"></i> Cancel Booking
+                </button>
+                ` : "" }
+              </div>
+            </div>
+
+            <!-- Additional booking cards can be added here -->
+
+            <!-- Pagination controls -->
+            <div id="pagination-container" class="pagination-container">
+              <!-- Pagination buttons will be added here dynamically -->
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Add Logout Modal -->
+    <div id="logoutModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <h2><i class="fas fa-sign-out-alt"></i> Logout</h2>
+        <p style="margin: 20px 0; color: #4a5568">
+          Are you sure you want to logout from your account?
+        </p>
+        <div class="modal-buttons">
+          <button class="cancel-btn" onclick="closeLogoutModal()">
+            Cancel
+          </button>
+          <button class="logout-btn" onclick="performLogout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add loading overlay -->
+    <div class="loading-overlay">
+      <div class="loading-spinner"></div>
+    </div>
+
+    <!-- Add Cancellation Modal -->
+    <div id="cancellationModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2><i class="fas fa-times-circle"></i> Cancel Booking</h2>
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>Cancellation requires admin approval. Your booking will be marked as "Pending Cancellation" until reviewed.</p>
+        </div>
+        <form id="cancellationForm">
+          <input type="hidden" id="cancellation_booking_id" name="booking_id">
+          <div class="form-group">
+            <label for="cancellation_reason">
+              Please provide a reason for cancellation <span class="text-danger">*</span>
+            </label>
+            <textarea class="form-control" id="cancellation_reason" name="reason" rows="4" required minlength="10" maxlength="500"></textarea>
+            <div class="character-counter">
+              <span id="charCount">0</span>/500 characters
+            </div>
+          </div>
+          <div class="form-error" id="cancellationError" style="display: none;">
+            Please provide a reason with at least 10 characters
+          </div>
+          <div class="modal-buttons">
+            <button type="button" class="cancel-btn" onclick="closeCancellationModal()">
+              Cancel
+            </button>
+            <button type="submit" class="action-btn cancel-btn">
+              <i class="fas fa-paper-plane"></i> Submit Request
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Apply sidebar state immediately before page loads
+      (function () {
+        const sidebar = document.getElementById("sidebar");
+        const isSidebarCollapsed =
+          localStorage.getItem("sidebarCollapsed") === "true";
+        if (isSidebarCollapsed) {
+          sidebar.classList.add("collapsed");
+          // Also update the icon immediately
+          const icon = sidebar.querySelector(".toggle-sidebar i");
+          if (icon) {
+            icon.classList.replace("fa-chevron-left", "fa-chevron-right");
+          }
+        }
+      })();
+
+      // Make handlers globally accessible
+      window.handlers = {
+        // Current page and bookings per page
+        currentPage: 1,
+        bookingsPerPage: 10,
+        allBookings: [],
+
+        // Load booking history when the page loads
+        init: function () {
+          this.loadBookingHistory();
+
+          // Add event listeners for search and filter
+          document
+            .querySelector(".search-box input")
+            .addEventListener("input", () => {
+              this.currentPage = 1; // Reset to first page when searching
+              debounce(this.loadBookingHistory.bind(this), 500)();
+            });
+          document
+            .querySelector(".filter-dropdown")
+            .addEventListener("change", () => {
+              this.currentPage = 1; // Reset to first page when filtering
+              this.loadBookingHistory();
+            });
+
+          // Add click handler for booking cards
+          document.addEventListener("click", (e) => {
+            const bookingCard = e.target.closest(".booking-card");
+            if (bookingCard) {
+              // Toggle compact/expanded state
+              bookingCard.classList.toggle("compact");
+              bookingCard.classList.toggle("expanded");
+            }
+          });
+        },
+
+        loadBookingHistory: function () {
+          const searchTerm = document.querySelector(".search-box input").value;
+          const filter = document
+            .querySelector(".filter-dropdown")
+            .value.toLowerCase();
+          const historyContainer = document.querySelector(".history-container");
+          const filterSection =
+            historyContainer.querySelector(".filter-section");
+          const paginationContainer = historyContainer.querySelector(
+            "#pagination-container"
+          );
+
+          // Show loading state
+          const loadingHtml = `
+            <div style="text-align: center; padding: 20px;">
+              <i class="fas fa-spinner fa-spin fa-2x"></i>
+              <p>Loading bookings...</p>
+            </div>
+          `;
+
+          // Clear existing booking cards but keep the filter section and pagination
+          const bookingCards = Array.from(historyContainer.children).filter(
+            (child) => child !== filterSection && child !== paginationContainer
+          );
+          bookingCards.forEach((card) => card.remove());
+          historyContainer.insertAdjacentHTML("beforeend", loadingHtml);
+
+          // Fetch booking history
+          fetch(
+            `fetch_booking_history.php?search=${searchTerm}&filter=${filter}`
+          )
+            .then((response) => response.json())
+            .then((data) => {
+              // Remove loading state
+              const loadingDiv =
+                historyContainer.querySelector("div:last-child");
+              if (loadingDiv && loadingDiv.querySelector(".fa-spinner")) {
+                loadingDiv.remove();
+              }
+
+              if (data.success) {
+                this.allBookings = data.bookings || [];
+
+                if (this.allBookings.length === 0) {
+                  historyContainer.insertAdjacentHTML(
+                    "beforeend",
+                    `<div style="text-align: center; padding: 20px; color: #666;">
+                      <i class="fas fa-ticket-alt fa-3x" style="margin-bottom: 10px;"></i>
+                      <p>No bookings found</p>
+                    </div>`
+                  );
+                  // Hide pagination if no bookings
+                  paginationContainer.innerHTML = "";
+                  return;
+                }
+
+                // Calculate total pages
+                const totalPages = Math.ceil(
+                  this.allBookings.length / this.bookingsPerPage
+                );
+
+                // Adjust current page if it's out of range
+                if (this.currentPage > totalPages) {
+                  this.currentPage = totalPages;
+                }
+
+                // Calculate start and end indices for current page
+                const startIndex =
+                  (this.currentPage - 1) * this.bookingsPerPage;
+                const endIndex = Math.min(
+                  startIndex + this.bookingsPerPage,
+                  this.allBookings.length
+                );
+
+                // Get bookings for current page
+                const bookingsForCurrentPage = this.allBookings.slice(
+                  startIndex,
+                  endIndex
+                );
+
+                // Insert booking cards for current page
+                const bookingCardsContainer = document.createElement("div");
+                bookingCardsContainer.className = "booking-cards-container";
+
+                bookingsForCurrentPage.forEach((booking) => {
+                  const bookingCard = this.createBookingCard(booking);
+                  bookingCardsContainer.insertAdjacentHTML(
+                    "beforeend",
+                    bookingCard
+                  );
+                });
+
+                // Add booking cards before pagination
+                paginationContainer.before(bookingCardsContainer);
+
+                // Render pagination controls
+                this.renderPagination(totalPages);
+              } else {
+                if (data.message.includes("Please login")) {
+                  window.location.href = "login.html";
+                } else {
+                  alert("Error loading booking history: " + data.message);
+                }
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              historyContainer.insertAdjacentHTML(
+                "beforeend",
+                `<div style="text-align: center; padding: 20px; color: #dc3545;">
+                  <i class="fas fa-exclamation-circle fa-3x" style="margin-bottom: 10px;"></i>
+                  <p>Failed to load booking history. Please try again later.</p>
+                </div>`
+              );
+            });
+        },
+
+        renderPagination: function (totalPages) {
+          if (totalPages <= 1) {
+            // Hide pagination if only one page
+            document.getElementById("pagination-container").innerHTML = "";
+            return;
+          }
+
+          const pagination = document.getElementById("pagination-container");
+          pagination.innerHTML = "";
+
+          // Page info indicator
+          const pageInfoEl = document.createElement("div");
+          pageInfoEl.className = "pagination-info";
+          pageInfoEl.innerHTML = `Page <span>${this.currentPage}</span> of <span>${totalPages}</span>`;
+          pagination.appendChild(pageInfoEl);
+
+          // Add previous button
+          const prevBtn = document.createElement("button");
+          prevBtn.className =
+            "pagination-btn prev-btn" +
+            (this.currentPage === 1 ? " disabled" : "");
+          prevBtn.innerHTML = '<i class="fas fa-chevron-left"></i>';
+          prevBtn.disabled = this.currentPage === 1;
+          prevBtn.addEventListener("click", (e) => {
+            if (this.currentPage > 1) {
+              this.addRippleEffect(e);
+              this.currentPage--;
+              this.loadBookingHistory();
+            }
+          });
+          pagination.appendChild(prevBtn);
+
+          // Calculate which page buttons to show
+          let startPage = Math.max(1, this.currentPage - 2);
+          let endPage = Math.min(totalPages, startPage + 4);
+
+          // Adjust if we're showing less than 5 pages
+          if (endPage - startPage < 4) {
+            startPage = Math.max(1, endPage - 4);
+          }
+
+          // Add first page button if not included in range
+          if (startPage > 1) {
+            const firstPageBtn = document.createElement("button");
+            firstPageBtn.className = "pagination-btn";
+            firstPageBtn.innerText = "1";
+            firstPageBtn.addEventListener("click", (e) => {
+              this.addRippleEffect(e);
+              this.currentPage = 1;
+              this.loadBookingHistory();
+            });
+            pagination.appendChild(firstPageBtn);
+
+            // Add ellipsis if there's a gap
+            if (startPage > 2) {
+              const ellipsis = document.createElement("span");
+              ellipsis.className = "pagination-ellipsis";
+              ellipsis.innerText = "...";
+              pagination.appendChild(ellipsis);
+            }
+          }
+
+          // Add page buttons
+          for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement("button");
+            pageBtn.className =
+              "pagination-btn" + (i === this.currentPage ? " active" : "");
+            pageBtn.innerText = i;
+            pageBtn.addEventListener("click", (e) => {
+              if (i !== this.currentPage) {
+                this.addRippleEffect(e);
+                this.currentPage = i;
+                this.loadBookingHistory();
+              }
+            });
+            pagination.appendChild(pageBtn);
+          }
+
+          // Add last page button if not included in range
+          if (endPage < totalPages) {
+            // Add ellipsis if there's a gap
+            if (endPage < totalPages - 1) {
+              const ellipsis = document.createElement("span");
+              ellipsis.className = "pagination-ellipsis";
+              ellipsis.innerText = "...";
+              pagination.appendChild(ellipsis);
+            }
+
+            const lastPageBtn = document.createElement("button");
+            lastPageBtn.className = "pagination-btn";
+            lastPageBtn.innerText = totalPages;
+            lastPageBtn.addEventListener("click", (e) => {
+              this.addRippleEffect(e);
+              this.currentPage = totalPages;
+              this.loadBookingHistory();
+            });
+            pagination.appendChild(lastPageBtn);
+          }
+
+          // Add next button
+          const nextBtn = document.createElement("button");
+          nextBtn.className =
+            "pagination-btn next-btn" +
+            (this.currentPage === totalPages ? " disabled" : "");
+          nextBtn.innerHTML = '<i class="fas fa-chevron-right"></i>';
+          nextBtn.disabled = this.currentPage === totalPages;
+          nextBtn.addEventListener("click", (e) => {
+            if (this.currentPage < totalPages) {
+              this.addRippleEffect(e);
+              this.currentPage++;
+              this.loadBookingHistory();
+            }
+          });
+          pagination.appendChild(nextBtn);
+        },
+
+        // Add a ripple effect when clicking pagination buttons
+        addRippleEffect: function (event) {
+          const button = event.currentTarget;
+
+          // Return if button is disabled
+          if (button.classList.contains("disabled")) return;
+
+          // Create ripple element
+          const ripple = document.createElement("span");
+          ripple.classList.add("ripple-effect");
+
+          // Position the ripple
+          const rect = button.getBoundingClientRect();
+          const size = Math.max(rect.width, rect.height) * 2;
+          const x = event.clientX - rect.left - size / 2;
+          const y = event.clientY - rect.top - size / 2;
+
+          ripple.style.width = ripple.style.height = `${size}px`;
+          ripple.style.left = `${x}px`;
+          ripple.style.top = `${y}px`;
+
+          // Add ripple to button
+          button.appendChild(ripple);
+
+          // Remove ripple after animation
+          setTimeout(() => {
+            ripple.remove();
+          }, 600);
+        },
+
+        createBookingCard: function (booking) {
+          return `
+            <div class="booking-card compact" data-booking-id="${
+              booking.booking_id
+            }">
+              <div class="booking-header">
+                <div>
+                  <div class="booking-id">${booking.booking_id}</div>
+                  <div class="booking-date">Booked on ${booking.book_date}</div>
+                </div>
+                <span class="status-badge status-${booking.status_class}">${
+            booking.status
+          }</span>
+              </div>
+
+              <div class="journey-details">
+                <div class="detail-group">
+                  <span class="detail-label">From</span>
+                  <span class="detail-value">${booking.from_station}</span>
+                </div>
+                <div class="detail-group">
+                  <span class="detail-label">To</span>
+                  <span class="detail-value">${booking.to_station}</span>
+                </div>
+                <div class="detail-group">
+                  <span class="detail-label">Date</span>
+                  <span class="detail-value">${booking.travel_date}</span>
+                </div>
+                <div class="detail-group">
+                  <span class="detail-label">Time</span>
+                  <span class="detail-value">${booking.departure_time}</span>
+                </div>
+                <div class="detail-group">
+                  <span class="detail-label">Train</span>
+                  <span class="detail-value">${booking.train_name} (${
+            booking.train_number
+          })</span>
+                </div>
+                <div class="detail-group">
+                  <span class="detail-label">Amount</span>
+                  <span class="detail-value">₱${parseFloat(
+                    booking.amount
+                  ).toFixed(2)}</span>
+                </div>
+                <div class="detail-group">
+                  <span class="detail-label">Payment Method</span>
+                  <span class="detail-value">${
+                    booking.payment_method || "N/A"
+                  }</span>
+                </div>
+              </div>
+
+              <div class="qr-code">
+                <i class="fas fa-qr-code fa-3x"></i>
+              </div>
+
+              <div class="booking-actions">
+                <button class="action-btn view-btn" onclick="event.stopPropagation(); handlers.viewBookingDetails('${
+                  booking.booking_id
+                }')">
+                  <i class="fas fa-eye"></i> View Details
+                </button>
+                ${
+                  booking.status !== "Cancelled" && booking.status !== "Pending Cancellation"
+                    ? `
+                    <button class="action-btn download-btn" onclick="event.stopPropagation(); handlers.downloadTicket('${booking.booking_id}')">
+                      <i class="fas fa-download"></i> Download Ticket
+                    </button>
+                    <button class="action-btn cancel-btn" onclick="event.stopPropagation(); handlers.cancelBooking('${booking.booking_id}')">
+                      <i class="fas fa-times"></i> Cancel Booking
+                    </button>
+                  `
+                    : booking.status === "Pending Cancellation"
+                    ? `
+                    <button class="action-btn download-btn" onclick="event.stopPropagation(); handlers.downloadTicket('${booking.booking_id}')">
+                      <i class="fas fa-download"></i> Download Ticket
+                    </button>
+                    <button class="action-btn info-btn" disabled title="Cancellation request is pending">
+                      <i class="fas fa-clock"></i> Cancellation Pending
+                    </button>
+                  `
+                    : ""
+                }
+              </div>
+            </div>
+          `;
+        },
+
+        viewBookingDetails: async function (bookingId) {
+          try {
+            console.log("Fetching details for booking:", bookingId); // Debug log
+            const response = await fetch(
+              `get_booking_details.php?booking_id=${bookingId}`
+            );
+            const data = await response.json();
+            console.log("Received data:", data); // Debug log
+
+            if (data.success) {
+              const booking = data.booking;
+
+              // Determine the status class for styling
+              let statusClass = "upcoming";
+              if (booking.payment.status === "Reserved") {
+                statusClass = "reserved";
+              } else if (booking.payment.status === "Completed") {
+                statusClass = "completed";
+              } else if (booking.payment.status === "Cancelled") {
+                statusClass = "cancelled";
+              } else if (booking.status === "Pending Cancellation") {
+                statusClass = "pending-cancellation";
+              }
+
+                    // Create cancellation section HTML if applicable
+          let cancellationSection = '';
+          if (booking.cancellation && booking.status === "Pending Cancellation") {
+            cancellationSection = `
+              <div class="detail-section cancellation-section">
+                <h3>Cancellation Request</h3>
+                <p><strong>Request Date:</strong> ${booking.cancellation.request_date}</p>
+                <p><strong>Status:</strong> <span class="status-badge status-pending-cancellation">Pending Approval</span></p>
+                <p><strong>Reason:</strong> ${booking.cancellation.reason}</p>
+                <div class="cancellation-note">
+                  <i class="fas fa-info-circle"></i>
+                  <span>Your cancellation request is being reviewed by our staff.</span>
+                </div>
+              </div>
+            `;
+          } else if (booking.cancellation && (booking.status === "Cancelled" || booking.status === "Confirmed")) {
+            let adminResponseHTML = '';
+            if (booking.cancellation.admin_response) {
+              adminResponseHTML = `
+                <p><strong>Admin Response:</strong> ${booking.cancellation.admin_response}</p>
+              `;
+            }
+            cancellationSection = `
+              <div class="detail-section cancellation-section">
+                <h3>Cancellation Details</h3>
+                <p><strong>Request Date:</strong> ${booking.cancellation.request_date}</p>
+                <p><strong>Status:</strong> <span class="status-badge status-${booking.status.toLowerCase()}">${booking.status}</span></p>
+                <p><strong>Reason:</strong> ${booking.cancellation.reason}</p>
+                ${adminResponseHTML}
+              </div>
+            `;
+
+                cancellationSection = `
+                  <div class="detail-section cancellation-section">
+                    <h3>Cancellation Information</h3>
+                    <p><strong>Request Date:</strong> ${booking.cancellation.request_date}</p>
+                    <p><strong>Approved Date:</strong> ${booking.cancellation.action_date || 'N/A'}</p>
+                    <p><strong>Reason:</strong> ${booking.cancellation.reason}</p>
+                    ${adminResponseHTML}
+                  </div>
+                `;
+              }
+
+              // Create modal HTML with complete booking information
+              const modalHtml = `
+                <div id="bookingDetailsModal" class="modal">
+                  <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2>Booking Details</h2>
+                    <div class="booking-details">
+                      <div class="detail-section">
+                        <h3>Journey Information</h3>
+                        <p><strong>From:</strong> ${
+                          booking.journey.departure.station
+                        }, ${booking.journey.departure.city}, ${
+                booking.journey.departure.province
+              }</p>
+                        <p><strong>To:</strong> ${
+                          booking.journey.arrival.station
+                        }, ${booking.journey.arrival.city}, ${
+                booking.journey.arrival.province
+              }</p>
+                        <p><strong>Date:</strong> ${booking.journey.date}</p>
+                        <p><strong>Departure Time:</strong> ${
+                          booking.journey.departure.time
+                        }</p>
+                        <p><strong>Arrival Time:</strong> ${
+                          booking.journey.arrival.time
+                        }</p>
+                        <p><strong>Distance:</strong> ${booking.distance} km</p>
+                      </div>
+
+                      <div class="detail-section">
+                        <h3>Train Information</h3>
+                        <p><strong>Train Name:</strong> ${
+                          booking.train.name
+                        }</p>
+                        <p><strong>Train Number:</strong> ${
+                          booking.train.number
+                        }</p>
+                        <p><strong>Class:</strong> ${booking.train.type}</p>
+                      </div>
+
+                      <div class="detail-section">
+                        <h3>Passenger Information</h3>
+                        <p><strong>Name:</strong> ${booking.passenger.name}</p>
+                        <p><strong>Email:</strong> ${
+                          booking.passenger.email
+                        }</p>
+                        <p><strong>Phone:</strong> ${
+                          booking.passenger.phone
+                        }</p>
+                      </div>
+
+                      <div class="detail-section">
+                        <h3>Payment Information</h3>
+                        <p><strong>Amount:</strong> ₱${parseFloat(
+                          booking.payment.amount
+                        ).toFixed(2)}</p>
+                        <p><strong>Payment Status:</strong> <span class="status-badge status-${statusClass}">${
+                booking.payment.status
+              }</span></p>
+                        <p><strong>Payment Method:</strong> ${
+                          booking.payment.method
+                        }</p>
+                        <p><strong>Payment Date:</strong> ${
+                          booking.payment.date || "Pending"
+                        }</p>
+                      </div>
+
+                      <div class="detail-section">
+                        <h3>Booking Information</h3>
+                        <p><strong>Booking ID:</strong> ${
+                          booking.booking_id
+                        }</p>
+                        <p><strong>Status:</strong> <span class="status-badge status-${statusClass}">${booking.status}</span></p>
+                        <p><strong>Booked On:</strong> ${booking.book_date}</p>
+                      </div>
+                      
+                      ${cancellationSection}
+                    </div>
+                  </div>
+                </div>
+              `;
+
+              // Remove existing modal if any
+              const existingModal = document.getElementById(
+                "bookingDetailsModal"
+              );
+              if (existingModal) {
+                existingModal.remove();
+              }
+
+              // Add new modal to body and show it
+              document.body.insertAdjacentHTML("beforeend", modalHtml);
+              const modal = document.getElementById("bookingDetailsModal");
+              modal.style.display = "flex"; // Changed from 'block' to 'flex' for better centering
+
+              // Initialize modal close functionality
+              const closeBtn = modal.querySelector(".close");
+              closeBtn.onclick = () => (modal.style.display = "none");
+              window.onclick = (event) => {
+                if (event.target === modal) {
+                  modal.style.display = "none";
+                }
+              };
+            } else {
+              throw new Error(data.message || "Failed to load booking details");
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            alert("Failed to load booking details: " + error.message);
+          }
+        },
+
+        downloadTicket: function (bookingId) {
+          try {
+            window.open(
+              `generate_ticket.php?booking_id=${bookingId}`,
+              "_blank"
+            );
+          } catch (error) {
+            console.error("Error:", error);
+            alert("Failed to download ticket");
+          }
+        },
+
+        cancelBooking: async function (bookingId) {
+          // Show cancellation modal instead of confirmation
+          showCancellationModal(bookingId);
+        },
+
+        submitCancellationRequest: async function(bookingId, reason) {
+          try {
+            console.log("Submitting cancellation for booking:", bookingId, "with reason:", reason); // Debug log
+            document.querySelector(".loading-overlay").classList.add("visible");
+            
+            const response = await fetch("cancel_request.php", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                booking_id: bookingId,
+                reason: reason,
+              }),
+            });
+            
+            // Log the raw response for debugging
+            const rawText = await response.text();
+            console.log("Raw server response:", rawText);
+            
+            // Parse the response as JSON
+            let data;
+            try {
+              data = JSON.parse(rawText);
+            } catch (e) {
+              console.error("Error parsing response:", e);
+              throw new Error("The server returned an invalid response. Please try again later.");
+            }
+            
+            if (data.success) {
+              // Show success message
+              alert(data.message);
+              
+              // Close modal
+              closeCancellationModal();
+              
+              // Reload booking history
+              this.loadBookingHistory(); // Reload the booking list
+            } else {
+              alert("Error: " + (data.message || "Unknown error occurred"));
+            }
+          } catch (error) {
+            console.error("Cancellation request error:", error);
+            alert("Error submitting cancellation request: " + error.message);
+          } finally {
+            document.querySelector(".loading-overlay").classList.remove("visible");
+          }
+        },
+
+        initializeModal: function (modalId) {
+          const modal = document.getElementById(modalId);
+          const closeBtn = modal.querySelector(".close");
+
+          modal.style.display = "block";
+
+          closeBtn.onclick = () => {
+            modal.style.display = "none";
+          };
+
+          window.onclick = (event) => {
+            if (event.target === modal) {
+              modal.style.display = "none";
+            }
+          };
+        },
+      };
+      // Initialize the page
+      document.addEventListener("DOMContentLoaded", () => {
+        handlers.init()
+
+        // Sidebar Toggle
+        const sidebar = document.querySelector(".sidebar")
+        const toggleBtn = document.querySelector(".toggle-sidebar");
+        const icon = toggleBtn.querySelector("i");
+        const rootElement = document.documentElement;
+
+        // Check localStorage for saved state
+        const isSidebarCollapsed =
+          localStorage.getItem("sidebarCollapsed") === "true";
+        if (isSidebarCollapsed) {
+          rootElement.classList.add("sidebar-collapsed");
+          icon.style.transform = "rotate(180deg)";
+        }
+
+        toggleBtn.addEventListener("click", function () {
+          rootElement.classList.toggle("sidebar-collapsed");
+
+          // Update toggle button icon and save state
+          const isCollapsed =
+            rootElement.classList.contains("sidebar-collapsed");
+          icon.style.transform = isCollapsed ? "rotate(180deg)" : "";
+          localStorage.setItem("sidebarCollapsed", isCollapsed);
+        });
+
+        // Highlight active menu item
+        const currentPage = window.location.pathname.split("/").pop();
+        const navLinks = document.querySelectorAll(".nav-links a");
+        navLinks.forEach((link) => {
+          if (link.getAttribute("href") === currentPage) {
+            link.classList.add("active");
+          }
+        });
+      });
+
+      // Utility function for debouncing
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func.apply(this, args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      // Add logout functionality
+      function showLogoutModal() {
+        document.getElementById("logoutModal").style.display = "flex";
+      }
+
+      function closeLogoutModal() {
+        document.getElementById("logoutModal").style.display = "none";
+      }
+
+      function showLoading() {
+        document.querySelector(".loading-overlay").classList.add("visible");
+      }
+
+      function hideLoading() {
+        document.querySelector(".loading-overlay").classList.remove("visible");
+      }
+
+      async function performLogout() {
+        try {
+          showLoading();
+          const response = await fetch("api/auth/logout.php", {
+            method: "POST",
+            credentials: "include",
+          });
+
+          if (!response.ok) {
+            throw new Error("Logout failed");
+          }
+
+          const result = await response.json();
+
+          if (result.success) {
+            // Show success message briefly before redirecting
+            hideLoading();
+            setTimeout(() => {
+              window.location.href = "login.php";
+            }, 500);
+          } else {
+            throw new Error(result.error || "Logout failed");
+          }
+        } catch (error) {
+          hideLoading();
+          alert("Failed to logout: " + error.message);
+          closeLogoutModal();
+        }
+      }
+
+      // Update the logout link handler
+      document.addEventListener("DOMContentLoaded", function () {
+        const logoutLink = document.querySelector(".nav-links li:last-child a");
+        logoutLink.addEventListener("click", function (e) {
+          e.preventDefault();
+          showLogoutModal();
+        });
+
+        // Close logout modal when clicking outside
+        window.onclick = function (event) {
+          const logoutModal = document.getElementById("logoutModal");
+          if (event.target === logoutModal) {
+            logoutModal.style.display = "none";
+          }
+        };
+      });
+
+      // Add this to your existing JavaScript
+      document.addEventListener("DOMContentLoaded", function () {
+        const themeToggle = document.getElementById("theme-toggle");
+        const icon = themeToggle.querySelector("i");
+
+        // Set initial icon based on current theme
+        if (document.documentElement.getAttribute("data-theme") === "dark") {
+          icon.classList.replace("fa-sun", "fa-moon");
+        }
+
+        themeToggle.addEventListener("click", function () {
+          const currentTheme =
+            document.documentElement.getAttribute("data-theme");
+          const newTheme = currentTheme === "dark" ? "light" : "dark";
+
+          document.documentElement.setAttribute("data-theme", newTheme);
+          localStorage.setItem("darkMode", newTheme === "dark");
+
+          // Toggle icon
+          icon.classList.toggle("fa-sun");
+          icon.classList.toggle("fa-moon");
+        });
+      });
+
+      // Add cancellation modal functions
+      function showCancellationModal(bookingId) {
+        const modal = document.getElementById('cancellationModal');
+        const closeBtn = modal.querySelector('.close');
+        const form = document.getElementById('cancellationForm');
+        const reasonInput = document.getElementById('cancellation_reason');
+        const errorMsg = document.getElementById('cancellationError');
+        
+        // Set booking ID in hidden field
+        document.getElementById('cancellation_booking_id').value = bookingId;
+        
+        // Reset form
+        form.reset();
+        errorMsg.style.display = 'none';
+        
+        // Show modal
+        modal.style.display = 'flex';
+        
+        // Set focus on reason textarea
+        reasonInput.focus();
+        
+        // Character counter
+        reasonInput.addEventListener('input', function() {
+          const count = this.value.length;
+          document.getElementById('charCount').textContent = count;
+          
+          // Toggle error message
+          if (count < 10) {
+            errorMsg.style.display = 'block';
+          } else {
+            errorMsg.style.display = 'none';
+          }
+        });
+        
+        // Close button event
+        closeBtn.onclick = closeCancellationModal;
+        
+        // Click outside to close
+        window.onclick = function(event) {
+          if (event.target === modal) {
+            closeCancellationModal();
+          }
+        };
+        
+        // Form submission
+        form.onsubmit = function(e) {
+          e.preventDefault();
+          
+          const reason = reasonInput.value.trim();
+          
+          if (reason.length < 10) {
+            errorMsg.style.display = 'block';
+            reasonInput.focus();
+            return;
+          }
+          
+          // Submit cancellation request
+          handlers.submitCancellationRequest(bookingId, reason);
+        };
+      }
+      
+      function closeCancellationModal() {
+        document.getElementById('cancellationModal').style.display = 'none';
+      }
+    </script>
+  </body>
+</html>

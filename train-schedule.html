@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PNR - Train Schedule</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="icon" type="image/x-icon" href="favicon/favicon.png">
+    <link rel="stylesheet" href="sidebar.css" />
+    <style>
+      .content {
+        background: var(--card-bg);
+        border-radius: var(--border-radius-lg);
+        padding: 32px;
+        box-shadow: var(--shadow-sm);
+        animation: fadeIn 0.3s ease-in-out;
+      }
+
+      .schedule-container {
+        margin: 0;
+        padding: 35px;
+        background: var(--card-bg);
+        border-radius: 20px;
+        box-shadow: var(--shadow-sm);
+        max-width: 100%;
+      }
+
+      .route-selector {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+        background: var(--step-bg);
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: var(--shadow-sm);
+        align-items: end;
+      }
+
+      .route-input label {
+        display: block;
+        margin-bottom: 10px;
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.95rem;
+      }
+
+      .route-input select,
+      .route-input input {
+        width: 100%;
+        padding: 14px 18px;
+        border: 2px solid var(--input-border);
+        border-radius: 12px;
+        font-size: 1rem;
+        color: var(--input-text);
+        background: var(--input-bg);
+        transition: all 0.3s ease;
+      }
+
+      .route-input select:hover,
+      .route-input input:hover {
+        border-color: #00ADB5;
+      }
+
+      .route-input select:focus,
+      .route-input input:focus {
+        outline: none;
+        border-color: #00ADB5;
+        box-shadow: 0 0 0 3px rgba(0, 173, 181, 0.1);
+      }
+
+      #searchBtn {
+        background: #00ADB5;
+        color: var(--white);
+        border: none;
+        padding: 14px 28px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 100%;
+        margin-top: 29px;
+        box-shadow: 0 4px 15px rgba(0, 173, 181, 0.2);
+      }
+
+      #searchBtn:hover {
+        background: #009199;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 173, 181, 0.3);
+      }
+
+      .schedule-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 16px;
+        margin-top: 25px;
+        table-layout: fixed;
+      }
+
+      .schedule-table th {
+        padding: 20px;
+        text-align: left;
+        color: var(--text-primary);
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 2px solid var(--border-color);
+        background: var(--step-bg);
+        white-space: nowrap;
+      }
+
+      .schedule-row {
+        background: var(--table-row-bg);
+        box-shadow: 0 2px 4px var(--table-shadow);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        margin-bottom: 12px;
+      }
+
+      .schedule-row:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px var(--table-shadow-hover);
+        background: var(--table-row-hover);
+      }
+
+      .schedule-row td {
+        padding: 24px 20px;
+        vertical-align: middle;
+        color: var(--text-primary);
+      }
+
+      .schedule-row td:first-child {
+        border-left: 4px solid #00ADB5;
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+      }
+
+      .schedule-row td:last-child {
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+      }
+
+      #noResults {
+        background: var(--step-bg);
+        border-radius: 12px;
+        padding: 40px;
+        text-align: center;
+        color: var(--text-primary);
+        font-size: 1.1rem;
+        margin-top: 30px;
+      }
+
+      .train-info {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+
+      .train-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--card-bg);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #00ADB5;
+        font-size: 1.2rem;
+        box-shadow: 0 4px 15px rgba(0, 173, 181, 0.1);
+      }
+
+      .train-name {
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 1.15rem;
+        margin-bottom: 6px;
+      }
+
+      .train-number {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .departure-time,
+      .arrival-time {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 6px;
+      }
+
+      .station {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+      }
+
+      .journey-duration {
+        font-size: 1rem;
+        color: var(--text-primary);
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .journey-duration i {
+        color: #00ADB5;
+        font-size: 0.9rem;
+      }
+
+      .fare-amount {
+        font-size: 1.15rem;
+        font-weight: 600;
+        color: #00ADB5;
+      }
+
+      .book-btn {
+        padding: 12px 28px;
+        background: #00ADB5;
+        color: var(--white);
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 1rem;
+        box-shadow: 0 4px 15px rgba(0, 173, 181, 0.2);
+      }
+
+      .book-btn:hover {
+        background: #009199;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 173, 181, 0.3);
+      }
+
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-right: 30px;
+      }
+
+      .theme-toggle {
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-size: 24px;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .theme-toggle:hover {
+        background: var(--hover-bg);
+        transform: rotate(15deg) scale(1.1);
+      }
+
+      .theme-toggle i {
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 2;
+      }
+
+      /* Light mode styles */
+      [data-theme="light"] .theme-toggle {
+        color: #00ADB5;
+        box-shadow: 0 2px 8px rgba(0, 173, 181, 0.2);
+      }
+
+      [data-theme="light"] .theme-toggle:hover {
+        background: rgba(0, 173, 181, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 173, 181, 0.3);
+      }
+
+      /* Dark mode styles */
+      [data-theme="dark"] .theme-toggle {
+        color: #00ADB5;
+        box-shadow: 0 2px 8px rgba(0, 173, 181, 0.2);
+      }
+
+      [data-theme="dark"] .theme-toggle:hover {
+        background: rgba(0, 173, 181, 0.15);
+        box-shadow: 0 4px 12px rgba(0, 173, 181, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="dashboard">
+      <div class="sidebar" id="sidebar">
+        <button class="toggle-sidebar">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="logo">
+          <img src="logo-white.png" alt="PNR Logo" />
+          <h2>Bicol Express</h2>
+        </div>
+        <ul class="nav-links">
+          <li>
+            <a href="homepage.html">
+              <i class="fas fa-home"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="bookticket.html">
+              <i class="fas fa-ticket-alt"></i>
+              <span>Book Ticket</span>
+            </a>
+          </li>
+          <li>
+            <a href="booking-history.html">
+              <i class="fas fa-history"></i>
+              <span>Booking History</span>
+            </a>
+          </li>
+          <li>
+            <a href="train-schedule.html" class="active">
+              <i class="fas fa-train"></i>
+              <span>Train Schedule</span>
+            </a>
+          </li>
+          <li>
+            <a href="profile.html">
+              <i class="fas fa-user"></i>
+              <span>Profile</span>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Logout</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="container">
+        <main class="content">
+          <div class="header">
+            <div class="header-content">
+              <h1>Train Schedule</h1>
+              <button id="theme-toggle" class="theme-toggle">
+                <i class="fas fa-sun"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="schedule-container">
+            <div class="route-selector">
+              <div class="route-input">
+                <label>From</label>
+                <select id="fromStation" required>
+                  <option value="">Select Station</option>
+                  <option value="Naga">Naga</option>
+                  <option value="Legazpi">Legazpi</option>
+                </select>
+              </div>
+              <div class="route-input">
+                <label>To</label>
+                <select id="toStation" required>
+                  <option value="">Select Station</option>
+                  <option value="Legazpi">Legazpi</option>
+                  <option value="Naga">Naga</option>
+                </select>
+              </div>
+              <div class="route-input date-picker">
+                <label>Date</label>
+                <input
+                  type="date"
+                  id="travelDate"
+                  required
+                  min=""
+                  class="form-control"
+                />
+              </div>
+              <div class="route-input">
+                <label>&nbsp;</label>
+                <button id="searchBtn" class="book-btn" style="width: 100%">
+                  Search Schedule
+                </button>
+              </div>
+            </div>
+
+            <div id="scheduleResults">
+              <table class="schedule-table">
+                <thead>
+                  <tr>
+                    <th>Train</th>
+                    <th>Departure</th>
+                    <th>Arrival</th>
+                    <th>Duration</th>
+                    <th>Fare</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="scheduleTableBody">
+                  <!-- Schedule rows will be dynamically added here -->
+                </tbody>
+              </table>
+              <div
+                id="noResults"
+                style="
+                  display: none;
+                  text-align: center;
+                  padding: 30px;
+                  color: #666;
+                "
+              >
+                No trains available for the selected route and date.
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Add Logout Modal -->
+    <div id="logoutModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <h2><i class="fas fa-sign-out-alt"></i> Logout</h2>
+        <p style="margin: 20px 0; color: #4a5568">
+          Are you sure you want to logout from your account?
+        </p>
+        <div class="modal-buttons">
+          <button class="cancel-btn" onclick="closeLogoutModal()">Cancel</button>
+          <button class="logout-btn" onclick="performLogout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add loading overlay -->
+    <div class="loading-overlay">
+      <div class="loading-spinner"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script>
+      // Apply sidebar state immediately before any other scripts
+      
+      (function() {
+        const sidebar = document.getElementById('sidebar');
+        const isSidebarCollapsed = localStorage.getItem("sidebarCollapsed") === "true";
+        if (isSidebarCollapsed) {
+          sidebar.classList.add("collapsed");
+          const icon = sidebar.querySelector(".toggle-sidebar i");
+          if (icon) {
+            icon.classList.replace("fa-chevron-left", "fa-chevron-right");
+          }
+        }
+
+        // Apply dark mode state
+        const isDarkMode = localStorage.getItem("darkMode") === "true";
+        if (isDarkMode) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+
+      // Combine all DOMContentLoaded event listeners into one
+      document.addEventListener("DOMContentLoaded", function() {
+        // Sidebar Toggle functionality
+        const sidebar = document.querySelector(".sidebar");
+        const toggleBtn = document.querySelector(".toggle-sidebar");
+        const icon = toggleBtn.querySelector("i");
+
+        toggleBtn.addEventListener("click", function() {
+          if (!sidebar.classList.contains("collapsed")) {
+            sidebar.classList.add("collapsing");
+            setTimeout(() => {
+              sidebar.classList.add("collapsed");
+              sidebar.classList.remove("collapsing");
+              icon.classList.replace("fa-chevron-left", "fa-chevron-right");
+              localStorage.setItem("sidebarCollapsed", "true");
+            }, 150);
+          } else {
+            sidebar.classList.remove("collapsed");
+            icon.classList.replace("fa-chevron-right", "fa-chevron-left");
+            localStorage.setItem("sidebarCollapsed", "false");
+          }
+        });
+
+        // Highlight active menu item
+        const currentPage = window.location.pathname.split("/").pop();
+        const navLinks = document.querySelectorAll(".nav-links a");
+        navLinks.forEach((link) => {
+          if (link.getAttribute("href") === currentPage) {
+            link.classList.add("active");
+          }
+        });
+
+        // Train schedule functionality
+        const fromStation = document.getElementById("fromStation");
+        const toStation = document.getElementById("toStation");
+        const travelDate = document.getElementById("travelDate");
+        const searchBtn = document.getElementById("searchBtn");
+        const scheduleTableBody = document.getElementById("scheduleTableBody");
+        const noResults = document.getElementById("noResults");
+
+        // Set minimum date to today
+        const today = new Date().toISOString().split("T")[0];
+        travelDate.min = today;
+        travelDate.value = today;
+
+        // Prevent selecting same station
+        fromStation.addEventListener("change", function () {
+          Array.from(toStation.options).forEach((option) => {
+            option.disabled = option.value === fromStation.value;
+          });
+        });
+
+        toStation.addEventListener("change", function () {
+          Array.from(fromStation.options).forEach((option) => {
+            option.disabled = option.value === toStation.value;
+          });
+        });
+
+        // Fetch station data from the database
+        function loadStations() {
+          fetch('fetch_stations.php')
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                // Clear existing options
+                fromStation.innerHTML = '<option value="">Select Station</option>';
+                toStation.innerHTML = '<option value="">Select Station</option>';
+                
+                // Add stations from database
+                data.stations.forEach(station => {
+                  const fromOption = document.createElement('option');
+                  fromOption.value = station.StationID;
+                  fromOption.textContent = `${station.StationName}, ${station.City}`;
+                  fromStation.appendChild(fromOption);
+                  
+                  const toOption = document.createElement('option');
+                  toOption.value = station.StationID;
+                  toOption.textContent = `${station.StationName}, ${station.City}`;
+                  toStation.appendChild(toOption);
+                });
+              } else {
+                console.error('Failed to load stations:', data.message);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
+        }
+        
+        // Load stations when page loads
+        loadStations();
+
+        // Search functionality
+        searchBtn.addEventListener("click", function () {
+          if (!fromStation.value || !toStation.value || !travelDate.value) {
+            alert("Please select all required fields");
+            return;
+          }
+
+          // Show loading state
+          scheduleTableBody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 20px;">
+                <i class="fas fa-spinner fa-spin"></i> Loading schedules...
+              </td>
+            </tr>
+          `;
+          noResults.style.display = "none";
+
+         // Fetch schedules from API
+fetch(`fetch_schedules.php?departure=${fromStation.value}&arrival=${toStation.value}&date=${travelDate.value}`)
+  .then(response => response.json())
+  .then(data => {
+    scheduleTableBody.innerHTML = ""; // Clear loading state
+    
+    if (data.success && data.schedules.length > 0) {
+      noResults.style.display = "none";
+      
+      data.schedules.forEach(train => {
+        // Parse departure and arrival times (24-hour format)
+        // Calculate duration properly
+const depTime = moment(train.departureTime); // e.g., "2025-04-05 11:00:00"
+const arrTime = moment(train.arrivalTime);   // e.g., "2025-04-05 13:30:00"
+
+let durationMs = arrTime.diff(depTime);
+
+// Optional fallback if somehow negative (invalid data)
+if (durationMs < 0) {
+  durationMs += 24 * 60 * 60 * 1000;
+}
+
+const totalMinutes = Math.floor(durationMs / (1000 * 60));
+const hours = Math.floor(totalMinutes / 60);
+const minutes = totalMinutes % 60;
+
+// Format duration string
+let durationString = '';
+if (hours > 0) {
+    durationString += `${hours}h `;
+}
+durationString += `${minutes}m`;
+
+// Now use durationString in your table row
+        
+        // Use fare directly from database (no calculations)
+        const fareAmount = parseFloat(train.fare).toFixed(2);
+        
+        const row = `
+          <tr class="schedule-row">
+            <td>
+              <div class="train-info">
+                <div class="train-icon">
+                  <i class="fas fa-train"></i>
+                </div>
+                <div>
+                  <div class="train-name">${train.trainName}</div>
+                  <div class="train-number">${train.trainNumber}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="departure-time">${train.departureTime}</div>
+              <div class="station">${train.departureStation}</div>
+            </td>
+            <td>
+              <div class="arrival-time">${train.arrivalTime}</div>
+              <div class="station">${train.arrivalStation}</div>
+            </td>
+            <td>
+              <div class="journey-duration">
+                <i class="fas fa-clock"></i>
+                ${durationString}
+              </div>
+            </td>
+            <td>
+              <div class="fare-amount">₱${fareAmount}</div>
+            </td>
+            <td>
+              <button class="book-btn" onclick="bookTrain('${train.id}', '${travelDate.value}')">Book Now</button>
+            </td>
+          </tr>
+        `;
+        scheduleTableBody.innerHTML += row;
+      });
+    } else {
+      // Show no results message if no schedules found
+      noResults.style.display = "block";
+    }
+  })
+            .catch(error => {
+              console.error('Error:', error);
+              scheduleTableBody.innerHTML = `
+                <tr>
+                  <td colspan="6" style="text-align: center; color: red; padding: 20px;">
+                    <i class="fas fa-exclamation-circle"></i> Failed to load schedules. Please try again.
+                  </td>
+                </tr>
+              `;
+            });
+        });
+
+        // Booking functionality
+        window.bookTrain = function (scheduleId, date) {
+          // Redirect to the booking page with the selected schedule parameters
+          window.location.href = `bookticket.html?schedule=${scheduleId}&date=${date}`;
+        };
+      });
+
+      // Add logout functionality
+      function showLogoutModal() {
+        document.getElementById("logoutModal").style.display = "flex";
+      }
+
+      function closeLogoutModal() {
+        document.getElementById("logoutModal").style.display = "none";
+      }
+
+      function showLoading() {
+        document.querySelector(".loading-overlay").classList.add("visible");
+      }
+
+      function hideLoading() {
+        document.querySelector(".loading-overlay").classList.remove("visible");
+      }
+
+      async function performLogout() {
+        try {
+          showLoading();
+          const response = await fetch("api/auth/logout.php", {
+            method: "POST",
+            credentials: "include",
+          });
+
+          if (!response.ok) {
+            throw new Error("Logout failed");
+          }
+
+          const result = await response.json();
+
+          if (result.success) {
+            // Show success message briefly before redirecting
+            hideLoading();
+            setTimeout(() => {
+              window.location.href = "login.php";
+            }, 500);
+          } else {
+            throw new Error(result.error || "Logout failed");
+          }
+        } catch (error) {
+          hideLoading();
+          alert("Failed to logout: " + error.message);
+          closeLogoutModal();
+        }
+      }
+
+      // Update the logout link handler
+      const logoutLink = document.querySelector(".nav-links li:last-child a");
+      logoutLink.addEventListener("click", function (e) {
+        e.preventDefault();
+        showLogoutModal();
+      });
+
+      // Close logout modal when clicking outside
+      window.onclick = function (event) {
+        const logoutModal = document.getElementById("logoutModal");
+        if (event.target === logoutModal) {
+          logoutModal.style.display = "none";
+        }
+      };
+
+      // Add this to your existing JavaScript, before the closing body tag
+      document.addEventListener('DOMContentLoaded', function() {
+        const themeToggle = document.getElementById('theme-toggle');
+        const icon = themeToggle.querySelector('i');
+        
+        // Set initial icon based on current theme
+        if (document.documentElement.getAttribute('data-theme') === 'dark') {
+          icon.classList.replace('fa-sun', 'fa-moon');
+        }
+
+        themeToggle.addEventListener('click', function() {
+          const currentTheme = document.documentElement.getAttribute('data-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          document.documentElement.setAttribute('data-theme', newTheme);
+          localStorage.setItem('darkMode', newTheme === 'dark');
+          
+          // Toggle icon
+          icon.classList.toggle('fa-sun');
+          icon.classList.toggle('fa-moon');
+        });
+      });
+    </script>
+  </body>
+</html>
